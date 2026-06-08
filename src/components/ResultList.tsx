@@ -43,7 +43,7 @@ export function ResultList({ output, subjectOnly }: Props) {
               <tr key={i} className={BAND_CLASS[m.band]}>
                 <td><span className="band-tag">{m.band}</span></td>
                 <td>{m.row.univName}</td>
-                <td>{m.row.unit}</td>
+                <td>{m.row.unit}{m.majorMatch && <span className="major-match">희망학과</span>}</td>
                 <td>{m.row.admissionType.replace('학생부', '')}</td>
                 <td>
                   {m.row.cutGrade?.toFixed(2)}

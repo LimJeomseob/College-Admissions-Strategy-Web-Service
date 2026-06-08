@@ -1,0 +1,73 @@
+/* ───────────────────────────────────────────────────────────
+   디자인 토큰 (라이브러리 없이 CSS 변수)
+   isyou1.com 참고: navy primary · 화이트/라이트그레이 · 카드형 · 넉넉한 여백
+   ─────────────────────────────────────────────────────────── */
+:root {
+  /* Brand / primary */
+  --navy-900: #0b1f3a;
+  --navy-700: #163a6b;
+  --navy-500: #2456a6;
+  --navy-100: #e7eef9;
+  --accent: #2f8f6b; /* 보조 포인트(차분한 그린) */
+
+  /* Ink / surface */
+  --ink: #1f2328;
+  --muted: #57606a;
+  --surface: #ffffff;
+  --surface-soft: #f6f8fa;
+  --surface-navy: #0b1f3a;
+  --border: #d0d7de;
+
+  /* Risk bands (기존 유지 — 컴포넌트 클래스 호환) */
+  --stable: #1a7f37;
+  --moderate: #9a6700;
+  --reach: #cf222e;
+  /* 레거시 별칭 (styles.css 호환) */
+  --line: var(--border);
+  --bg-soft: var(--surface-soft);
+
+  /* Spacing scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Typography */
+  --font-sans: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --fs-h1: 2rem;
+  --fs-h2: 1.4rem;
+  --fs-h3: 1.15rem;
+  --fs-body: 1rem;
+  --fs-small: 0.85rem;
+  --lh-tight: 1.25;
+  --lh-body: 1.6;
+
+  /* Radius & shadow */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(11, 31, 58, 0.06), 0 1px 3px rgba(11, 31, 58, 0.08);
+  --shadow-md: 0 4px 12px rgba(11, 31, 58, 0.10);
+
+  /* Layout */
+  --container-max: 1080px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--surface);
+  line-height: var(--lh-body);
+}
+a { color: var(--navy-500); }
+
+/* 공용 레이아웃 헬퍼 */
+.container { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--space-4); }
+.app-main { min-height: 60vh; }

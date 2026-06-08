@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { SubjectInput, Track } from '../types';
+import { parseGradeFile } from '../data/parseGradeFile';
+import { MAJOR_FAMILIES, lookupMajor } from '../data/majorFamilies';
 
-// ① 입력 계층: 성적표 양식 표 형태 입력
+// ① 입력 계층: 성적표 양식 표 형태 입력 + 파일 업로드 + 희망학과
 
 const CATEGORIES: SubjectInput['category'][] = ['국어', '수학', '영어', '사회', '과학', '기타'];
 
@@ -9,6 +11,8 @@ interface Props {
   track: Track;
   onTrackChange: (t: Track) => void;
   onSubmit: (rows: SubjectInput[]) => void;
+  desiredMajor: string;
+  onDesiredMajorChange: (v: string) => void;
 }
 
 interface Row {
@@ -20,7 +24,9 @@ interface Row {
 
 const emptyRow = (): Row => ({ category: '국어', name: '', grade5: '', credits: '' });
 
-export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
+const TEMPLATE_URL = `${import.meta.env.BASE_URL}templates/grade-template.csv`;
+
+export function GradeInputForm({ track, onTrackChange, onSubmit, desiredMajor, onDesiredMajorChange }: Props) {
   const [rows, setRows] = useState<Row[]>([
     { category: '국어', name: '국어', grade5: '2', credits: '4' },
     { category: '수학', name: '수학', grade5: '3', credits: '4' },
@@ -28,9 +34,35 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
     { category: '사회', name: '통합사회', grade5: '2', credits: '3' },
     { category: '과학', name: '통합과학', grade5: '3', credits: '3' },
   ]);
+  const [upload, setUpload] = useState<{ kind: 'warn' | 'error'; lines: string[] } | null>(null);
 
   const update = (i: number, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 같은 파일 재업로드 허용
+    if (!file) return;
+    try {
+      const parsed = await parseGradeFile(file);
+      setRows(
+        parsed.rows.map((r) => ({
+          category: r.category,
+          name: r.name,
+          grade5: String(r.grade5),
+          credits: String(r.credits),
+        })),
+      );
+      if (parsed.track) onTrackChange(parsed.track);
+      setUpload(
+        parsed.warnings.length
+          ? { kind: 'warn', lines: [`${parsed.rows.length}개 과목을 불러왔습니다.`, ...parsed.warnings] }
+          : { kind: 'warn', lines: [`${parsed.rows.length}개 과목을 불러왔습니다.`] },
+      );
+    } catch (err) {
+      setUpload({ kind: 'error', lines: [(err as Error).message] });
+    }
+  };
 
   const submit = () => {
     const parsed: SubjectInput[] = rows
@@ -44,9 +76,31 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
     onSubmit(parsed);
   };
 
+  const families = lookupMajor(desiredMajor).families;
+
   return (
     <section className="input-form">
       <h2>① 성적 입력</h2>
+
+      <div className="upload-box">
+        <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+          파일 업로드
+          <input
+            type="file"
+            accept=".csv,.txt,.xlsx,.xls"
+            onChange={handleFile}
+            style={{ display: 'none' }}
+          />
+        </label>
+        <a href={TEMPLATE_URL} download className="hint">양식 다운로드(CSV)</a>
+        <span className="hint">엑셀(.xlsx)·CSV·텍스트(.txt) 지원 — 헤더: 과목구분, 과목명, 등급, 단위수</span>
+      </div>
+      {upload && (
+        upload.kind === 'error'
+          ? <p className="error">{upload.lines[0]}</p>
+          : <ul className="upload-warnings">{upload.lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+      )}
+
       <div className="track-select">
         계열:
         {(['인문', '자연'] as Track[]).map((t) => (
@@ -55,6 +109,24 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
           </label>
         ))}
       </div>
+
+      <div className="desired-major">
+        <label htmlFor="desired-major-input">희망학과:</label>
+        <input
+          id="desired-major-input"
+          list="major-list"
+          value={desiredMajor}
+          onChange={(e) => onDesiredMajorChange(e.target.value)}
+          placeholder="예: 교육학과"
+        />
+        <datalist id="major-list">
+          {Object.keys(MAJOR_FAMILIES).map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
+        {families.length > 0 && <span className="families">↳ 계열: {families.join(' · ')}</span>}
+      </div>
+
       <table className="grade-table">
         <thead>
           <tr>

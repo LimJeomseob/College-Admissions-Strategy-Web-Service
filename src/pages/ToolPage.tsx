@@ -1,24 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
-import { DISCLAIMER } from './config';
-import { loadDataLayer } from './data/loadDataLayer';
+import { DISCLAIMER } from '../config';
+import { loadDataLayer } from '../data/loadDataLayer';
+import { lookupMajor } from '../data/majorFamilies';
 import {
+  annotateByMajor,
   buildSubjectStrategies,
   computeComboAverages,
   convert,
   match,
   triage,
-} from './engine';
-import { GradeInputForm } from './components/GradeInputForm';
-import { ConversionPanel } from './components/ConversionPanel';
-import { ResultList } from './components/ResultList';
-import { StrategyCards } from './components/StrategyCards';
-import type { DataLayer, SubjectInput, Track } from './types';
+} from '../engine';
+import { GradeInputForm } from '../components/GradeInputForm';
+import { ConversionPanel } from '../components/ConversionPanel';
+import { ResultList } from '../components/ResultList';
+import { StrategyCards } from '../components/StrategyCards';
+import type { DataLayer, SubjectInput, Track } from '../types';
 
-export default function App() {
+export function ToolPage() {
   const [data, setData] = useState<DataLayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<SubjectInput[]>([]);
   const [track, setTrack] = useState<Track>('인문');
+  const [desiredMajor, setDesiredMajor] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -33,20 +36,32 @@ export default function App() {
 
     const conv = convert(data.conversion, refAvg);
     const triageResult = triage(conv.est9);
-    const matchOutput = match(data.admissions, data.conversion, averages, { track });
-    const strategies = buildSubjectStrategies(
-      matchOutput.matched,
-      data.subjectTrack,
-      averages,
+    const lookup = lookupMajor(desiredMajor);
+    const matchOutput = annotateByMajor(
+      match(data.admissions, data.conversion, averages, { track }),
+      lookup,
     );
+    const strategies = buildSubjectStrategies(matchOutput.matched, data.subjectTrack, averages);
     return { averages, conv, triageResult, matchOutput, strategies };
-  }, [data, submitted, subjects, track]);
+  }, [data, submitted, subjects, track, desiredMajor]);
 
-  if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
-  if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
+  if (error) {
+    return (
+      <main className="container tool-page">
+        <p className="error">로드 오류: {error}</p>
+      </main>
+    );
+  }
+  if (!data) {
+    return (
+      <main className="container tool-page">
+        <p>데이터 로딩 중…</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="container">
+    <main className="container tool-page">
       <header>
         <h1>5등급제 → 9등급 입결 기반 대입 전략</h1>
         <p className="subtitle">
@@ -58,6 +73,8 @@ export default function App() {
       <GradeInputForm
         track={track}
         onTrackChange={setTrack}
+        desiredMajor={desiredMajor}
+        onDesiredMajorChange={setDesiredMajor}
         onSubmit={(rows) => {
           setSubjects(rows);
           setSubmitted(true);
