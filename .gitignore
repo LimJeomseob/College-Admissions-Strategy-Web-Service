@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# 원본 DB(개인 데이터/대용량)는 저장소에 커밋하지 않음.
+data/raw/*
+!data/raw/.gitkeep
+
+# ETL 산출물(생성물). 로컬은 `npm run etl(:mock)`, CI는 빌드 단계에서 생성.
+public/data/
