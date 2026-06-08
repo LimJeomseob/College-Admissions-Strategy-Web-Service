@@ -1,0 +1,81 @@
+// ===== 1) 데이터 보관용 변수 =====
+let convTable = [];   // 5->9 환산표
+let ipgyeol = [];     // 수시 입결
+let gwagwa = {};      // 대학명 -> 전형 상세
+ 
+// ===== 2) 데이터 불러오기 =====
+async function loadData() {
+  const c = await fetch("data/conversion.json").then(r => r.json());
+  convTable = c.records;
+ 
+  const g = await fetch("data/gwagwa.json").then(r => r.json());
+  g.records.forEach(r => { gwagwa[r["대학명"]] = r; });
+ 
+  await new Promise(resolve => {
+    Papa.parse("data/ipgyeol.csv", {
+      download: true, header: true,
+      complete: res => { ipgyeol = res.data; resolve(); }
+    });
+  });
+  document.getElementById("result").innerHTML = "성적을 입력하고 버튼을 누르세요.";
+}
+ 
+// ===== 3) 5등급 -> 9등급 환산 (50:50 통합 모형) =====
+function convert(avg) {
+  let v = Math.round(avg / 0.05) * 0.05;    // 0.05 간격으로 반올림
+  if (v < 1.0) v = 1.0;
+  if (v > 3.5) return null;                 // 표 범위(1.00~3.50) 초과
+  const key = v.toFixed(2);
+  const row = convTable.find(r => r["5등급평균"] === key);
+  return row ? parseFloat(row["통합_50_50"]) : null;
+}
+ 
+// ===== 4) 지원 가능 교과전형 찾기 =====
+function match(my9) {
+  return ipgyeol
+    .filter(r => r["전형유형"] === "학생부교과")
+    .map(r => ({ row: r, g: parseFloat(r["2025입결_등급"]) }))
+    .filter(x => x.g >= 1 && x.g <= 9)        // 빈값.이상치 제거
+    .filter(x => x.g >= my9 - 0.5)            // 내 등급이 입결보다 좋거나 비슷
+    .sort((a, b) => a.g - b.g);
+}
+ 
+// ===== 5) 구간 색상 (안정/적정/도전) =====
+function zone(my9, ipG) {
+  if (ipG >= my9 + 0.3) return ["안정", "safe"];
+  if (ipG >= my9 - 0.3) return ["적정", "fit"];
+  return ["도전", "reach"];
+}
+ 
+// ===== 6) 버튼을 누르면 실행 =====
+function run() {
+  const avg = parseFloat(document.getElementById("avg").value);
+  const box = document.getElementById("result");
+  const my9 = convert(avg);
+  if (my9 === null) {
+    box.innerHTML = "<p>입력값 " + avg + " 은 환산표 범위(1.00~3.50)를 벗어났습니다.</p>";
+    return;
+  }
+  const all = match(my9);
+  const list = all.slice(0, 50);            // 상위 50곳만
+  let html = "<p>내 5등급 평균 <b>" + avg + "</b> -> 9등급 추정 <b>" +
+             my9.toFixed(2) + "</b> (50:50 통합)</p>";
+  html += "<p>지원 가능 교과전형 <b>" + all.length + "</b>곳 중 상위 50</p>";
+  html += "<table><tr><th>지역</th><th>대학</th><th>모집단위</th>" +
+          "<th>전형</th><th>25입결</th><th>구간</th><th>수능최저</th></tr>";
+  list.forEach(x => {
+    const r = x.row;
+    const [label, cls] = zone(my9, x.g);
+    const d = gwagwa[r["대학교"]];
+    const choejeo = d ? (d["수능최저학력기준"] || "-") : (r["최저학력기준"] || "-");
+    html += "<tr><td>" + (r["광역"]||"") + "</td><td>" + (r["대학교"]||"") +
+            "</td><td>" + (r["모집단위명"]||"") + "</td><td>" + (r["전형명"]||"") +
+            "</td><td>" + x.g.toFixed(2) + "</td><td class=" + cls + ">" +
+            label + "</td><td>" + choejeo + "</td></tr>";
+  });
+  html += "</table>";
+  box.innerHTML = html;
+}
+ 
+// ===== 7) 페이지가 열리면 데이터부터 불러오기 =====
+loadData();
