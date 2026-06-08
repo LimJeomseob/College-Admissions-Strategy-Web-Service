@@ -1,0 +1,31 @@
+{
+  "name": "college-admissions-strategy",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "5등급제 학생의 9등급 입결 기반 대입 전략 웹 서비스 (MVP: 교과전형 경로)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "etl": "tsx scripts/etl/index.ts",
+    "etl:mock": "tsx scripts/etl/generateMock.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.42",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8",
+    "xlsx": "^0.18.5"
+  }
+}
