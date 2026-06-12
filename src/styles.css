@@ -75,5 +75,23 @@ button.primary { background: var(--navy-700); color: #fff; border-color: var(--n
 .advantage { font-size: .85rem; background: var(--bg-soft); border-radius: 6px; padding: 6px 8px; }
 .muted { color: var(--muted); }
 
+/* 인증/마이페이지/관리자 */
+.auth-page { max-width: 560px; }
+.auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.auth-form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: .9rem; }
+.auth-form input, .auth-form select { font: inherit; padding: 8px 10px; }
+.google-btn { width: 100%; margin-top: 12px; }
+.auth-divider { text-align: center; color: var(--muted); font-size: .85rem; margin: 18px 0 4px; }
+.auth-switch { margin-top: 16px; font-size: .9rem; color: var(--muted); }
+.linklike { background: none; border: none; color: var(--navy-700); font: inherit; font-weight: 600; cursor: pointer; padding: 0; text-decoration: underline; }
+.consent-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--surface-soft); }
+.consent-line { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; font-size: .9rem; }
+.consent-line input { margin-top: 3px; }
+.privacy-notice { margin-top: 8px; font-size: .82rem; color: var(--muted); }
+.privacy-notice ul { margin: 8px 0 0; padding-left: 18px; }
+.privacy-notice li { margin: 3px 0; }
+.admin-add { display: flex; gap: 8px; margin: 16px 0; }
+.admin-add input { flex: 1; font: inherit; padding: 8px 10px; }
+
 .undisclosed { margin-top: 12px; }
 .disclaimer { font-size: .8rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 12px; }

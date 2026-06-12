@@ -10,6 +10,8 @@ import {
   triage,
 } from '../engine';
 import { lookupMajor } from '../data/majorFamilies';
+import { useAuth } from '../auth/AuthProvider';
+import { supabase } from '../auth/supabaseClient';
 import { GradeInputForm } from '../components/GradeInputForm';
 import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { ConversionPanel } from '../components/ConversionPanel';
@@ -27,9 +29,30 @@ export function ToolPage() {
   const [desiredMajor, setDesiredMajor] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  const { user } = useAuth();
+
   useEffect(() => {
     loadDataLayer().then(setData).catch((e) => setError(String(e)));
   }, []);
+
+  // 로그인 사용자는 저장된 프로필의 희망학과를 도구에 자동 연동(Phase B).
+  useEffect(() => {
+    if (!supabase || !user) return;
+    let active = true;
+    supabase
+      .from('profiles')
+      .select('desired_major, track')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!active || !data) return;
+        if (data.desired_major) setDesiredMajor(data.desired_major);
+        if (data.track === '인문' || data.track === '자연') setTrack(data.track);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   // 희망학과 변경 시, 매핑된 계열을 계열 라디오 기본값으로 동기화(사용자 재선택 가능).
   const handleMajorChange = (v: string) => {
