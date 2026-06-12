@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured, redirectTo } from './supabaseClient';
+import { supabase, isSupabaseConfigured, redirectTo, hadOAuthRedirect } from './supabaseClient';
 
 interface AuthContextValue {
   configured: boolean;
@@ -29,6 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
+      // OAuth/이메일 확인 복귀 후 세션이 잡히면 마이페이지로 이동(해시 없는 홈에 떨어지므로).
+      if (data.session && hadOAuthRedirect) {
+        window.location.hash = '#/mypage';
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
@@ -63,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!supabase) return { error: 'Supabase 설정이 필요합니다.' };
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: redirectTo('/mypage') },
+          options: { redirectTo: redirectTo() },
         });
         return error ? { error: error.message } : {};
       },
@@ -77,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: redirectTo('/mypage') },
+          options: { emailRedirectTo: redirectTo() },
         });
         if (error) return { error: error.message };
         if (!data.session) return { info: '확인 메일을 보냈습니다. 메일의 링크로 가입을 완료해 주세요.' };
