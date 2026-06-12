@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { DISCLAIMER } from '../config';
 import { loadDataLayer } from '../data/loadDataLayer';
 import {
+  annotateByMajor,
   buildSubjectStrategies,
   computeComboAverages,
   convert,
   match,
   triage,
 } from '../engine';
+import { lookupMajor } from '../data/majorFamilies';
 import { GradeInputForm } from '../components/GradeInputForm';
+import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { ConversionPanel } from '../components/ConversionPanel';
 import { ResultList } from '../components/ResultList';
 import { StrategyCards } from '../components/StrategyCards';
@@ -21,11 +24,19 @@ export function ToolPage() {
   const [error, setError] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<SubjectInput[]>([]);
   const [track, setTrack] = useState<Track>('인문');
+  const [desiredMajor, setDesiredMajor] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     loadDataLayer().then(setData).catch((e) => setError(String(e)));
   }, []);
+
+  // 희망학과 변경 시, 매핑된 계열을 계열 라디오 기본값으로 동기화(사용자 재선택 가능).
+  const handleMajorChange = (v: string) => {
+    setDesiredMajor(v);
+    const lk = lookupMajor(v);
+    if (lk.track) setTrack(lk.track);
+  };
 
   const result = useMemo(() => {
     if (!data || !submitted) return null;
@@ -35,14 +46,16 @@ export function ToolPage() {
 
     const conv = convert(data.conversion, refAvg);
     const triageResult = triage(conv.est9);
-    const matchOutput = match(data.admissions, data.conversion, averages, { track });
+    const rawMatch = match(data.admissions, data.conversion, averages, { track });
+    // 희망학과 기반 우선정렬·배지 (행 제거 없음, 세션 한정·미저장)
+    const matchOutput = annotateByMajor(rawMatch, lookupMajor(desiredMajor));
     const strategies = buildSubjectStrategies(
       matchOutput.matched,
       data.subjectTrack,
       averages,
     );
     return { averages, conv, triageResult, matchOutput, strategies };
-  }, [data, submitted, subjects, track]);
+  }, [data, submitted, subjects, track, desiredMajor]);
 
   if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
   if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
@@ -65,6 +78,8 @@ export function ToolPage() {
           setSubmitted(true);
         }}
       />
+
+      <DesiredMajorInput value={desiredMajor} onChange={handleMajorChange} />
 
       {result && (
         <section className="results">

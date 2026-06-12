@@ -96,6 +96,15 @@ export interface MatchResult {
   band: RiskBand;
   /** 입결 - 학생등급 (양수=여유) */
   gap: number;
+  /** 희망학과/계열과 일치 시 표시 (옵셔널 — 기존 로직/테스트 영향 없음) */
+  majorMatch?: boolean;
+}
+
+/** 희망학과(세션 입력) — 자유입력 원문 + 매핑된 계열/계열구분 */
+export interface DesiredMajor {
+  raw: string;
+  families: string[];
+  track: Track | null;
 }
 
 /** 4단계 교과전략 카드 */
