@@ -19,7 +19,14 @@ export function Navbar() {
           <NavLink to="/" end className={navClass}>홈</NavLink>
           <NavLink to="/tool" className={navClass}>전략 도구</NavLink>
           {configured && user && <NavLink to="/mypage" className={navClass}>마이페이지</NavLink>}
-          {configured && isAdmin && <NavLink to="/admin" className={navClass}>관리자</NavLink>}
+          {configured && isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => `navbar-admin ${isActive ? 'active' : ''}`.trim()}
+            >
+              ⚙ 관리자
+            </NavLink>
+          )}
           {configured && !user && <NavLink to="/login" className={navClass}>로그인</NavLink>}
           {configured && user && (
             <button

@@ -41,3 +41,23 @@
   cursor: pointer;
 }
 .navbar-signout:hover { color: #fff; border-color: #fff; }
+
+/* 관리자 전용 강조 바로가기 (알약형) */
+.navbar-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: var(--fs-base);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+.navbar-admin:hover, .navbar-admin.active {
+  background: #fff;
+  color: var(--navy-900);
+  border-color: #fff;
+}
