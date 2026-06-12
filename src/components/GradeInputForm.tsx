@@ -6,8 +6,6 @@ import { parseGradeFile, ParseError } from '../data/parseGradeFile';
 
 const CATEGORIES: SubjectInput['category'][] = ['국어', '수학', '영어', '사회', '과학', '기타'];
 
-const TEMPLATE_URL = `${import.meta.env.BASE_URL}templates/grade-template.csv`;
-
 interface Props {
   track: Track;
   onTrackChange: (t: Track) => void;
@@ -90,9 +88,6 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
             }}
           />
         </label>
-        <a className="template-link" href={TEMPLATE_URL} download>
-          양식 다운로드
-        </a>
       </div>
       {uploadInfo && <p className="upload-info">{uploadInfo}</p>}
       {uploadError && <p className="error">{uploadError}</p>}
