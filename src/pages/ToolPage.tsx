@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { DISCLAIMER } from './config';
-import { loadDataLayer } from './data/loadDataLayer';
+import { DISCLAIMER } from '../config';
+import { loadDataLayer } from '../data/loadDataLayer';
 import {
   buildSubjectStrategies,
   computeComboAverages,
   convert,
   match,
   triage,
-} from './engine';
-import { GradeInputForm } from './components/GradeInputForm';
-import { ConversionPanel } from './components/ConversionPanel';
-import { ResultList } from './components/ResultList';
-import { StrategyCards } from './components/StrategyCards';
-import type { DataLayer, SubjectInput, Track } from './types';
+} from '../engine';
+import { GradeInputForm } from '../components/GradeInputForm';
+import { ConversionPanel } from '../components/ConversionPanel';
+import { ResultList } from '../components/ResultList';
+import { StrategyCards } from '../components/StrategyCards';
+import type { DataLayer, SubjectInput, Track } from '../types';
 
-export default function App() {
+// 전략 도구 페이지 — 기존 App 본문을 라우팅 도입에 맞춰 분리.
+// 입력→환산→매칭→전략 파이프라인은 그대로 유지(엔진 비변경).
+export function ToolPage() {
   const [data, setData] = useState<DataLayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<SubjectInput[]>([]);
