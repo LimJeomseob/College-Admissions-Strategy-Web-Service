@@ -1,29 +1,65 @@
 import { useEffect, useMemo, useState } from 'react';
-import { DISCLAIMER } from './config';
-import { loadDataLayer } from './data/loadDataLayer';
+import { DISCLAIMER } from '../config';
+import { loadDataLayer } from '../data/loadDataLayer';
 import {
+  annotateByMajor,
   buildSubjectStrategies,
   computeComboAverages,
   convert,
   match,
   triage,
-} from './engine';
-import { GradeInputForm } from './components/GradeInputForm';
-import { ConversionPanel } from './components/ConversionPanel';
-import { ResultList } from './components/ResultList';
-import { StrategyCards } from './components/StrategyCards';
-import type { DataLayer, SubjectInput, Track } from './types';
+} from '../engine';
+import { lookupMajor } from '../data/majorFamilies';
+import { useAuth } from '../auth/AuthProvider';
+import { supabase } from '../auth/supabaseClient';
+import { GradeInputForm } from '../components/GradeInputForm';
+import { DesiredMajorInput } from '../components/DesiredMajorInput';
+import { ConversionPanel } from '../components/ConversionPanel';
+import { ResultList } from '../components/ResultList';
+import { StrategyCards } from '../components/StrategyCards';
+import type { DataLayer, SubjectInput, Track } from '../types';
 
-export default function App() {
+// 전략 도구 페이지 — 기존 App 본문을 라우팅 도입에 맞춰 분리.
+// 입력→환산→매칭→전략 파이프라인은 그대로 유지(엔진 비변경).
+export function ToolPage() {
   const [data, setData] = useState<DataLayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<SubjectInput[]>([]);
   const [track, setTrack] = useState<Track>('인문');
+  const [desiredMajor, setDesiredMajor] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     loadDataLayer().then(setData).catch((e) => setError(String(e)));
   }, []);
+
+  // 로그인 사용자는 저장된 프로필의 희망학과를 도구에 자동 연동(Phase B).
+  useEffect(() => {
+    if (!supabase || !user) return;
+    let active = true;
+    supabase
+      .from('profiles')
+      .select('desired_major, track')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!active || !data) return;
+        if (data.desired_major) setDesiredMajor(data.desired_major);
+        if (data.track === '인문' || data.track === '자연') setTrack(data.track);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  // 희망학과 변경 시, 매핑된 계열을 계열 라디오 기본값으로 동기화(사용자 재선택 가능).
+  const handleMajorChange = (v: string) => {
+    setDesiredMajor(v);
+    const lk = lookupMajor(v);
+    if (lk.track) setTrack(lk.track);
+  };
 
   const result = useMemo(() => {
     if (!data || !submitted) return null;
@@ -33,14 +69,16 @@ export default function App() {
 
     const conv = convert(data.conversion, refAvg);
     const triageResult = triage(conv.est9);
-    const matchOutput = match(data.admissions, data.conversion, averages, { track });
+    const rawMatch = match(data.admissions, data.conversion, averages, { track });
+    // 희망학과 기반 우선정렬·배지 (행 제거 없음, 세션 한정·미저장)
+    const matchOutput = annotateByMajor(rawMatch, lookupMajor(desiredMajor));
     const strategies = buildSubjectStrategies(
       matchOutput.matched,
       data.subjectTrack,
       averages,
     );
     return { averages, conv, triageResult, matchOutput, strategies };
-  }, [data, submitted, subjects, track]);
+  }, [data, submitted, subjects, track, desiredMajor]);
 
   if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
   if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
@@ -63,6 +101,8 @@ export default function App() {
           setSubmitted(true);
         }}
       />
+
+      <DesiredMajorInput value={desiredMajor} onChange={handleMajorChange} />
 
       {result && (
         <section className="results">

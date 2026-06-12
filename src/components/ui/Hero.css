@@ -1,0 +1,20 @@
+.ui-hero {
+  background: linear-gradient(160deg, var(--navy-900) 0%, var(--navy-700) 100%);
+  color: #fff;
+  padding: var(--space-8) var(--space-4);
+}
+.ui-hero-inner { max-width: var(--container-max); margin: 0 auto; text-align: center; }
+.ui-hero-title {
+  font-size: var(--fs-2xl);
+  line-height: 1.2;
+  margin: 0 0 var(--space-4);
+  font-weight: 800;
+}
+.ui-hero-subtitle {
+  font-size: var(--fs-lg);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 640px;
+  margin: 0 auto var(--space-6);
+  line-height: 1.6;
+}
+.ui-hero-actions { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }

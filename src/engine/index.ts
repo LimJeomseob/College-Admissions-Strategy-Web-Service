@@ -4,3 +4,4 @@ export { match } from './match';
 export type { MatchFilters, MatchOutput } from './match';
 export { triage } from './triage';
 export { buildSubjectStrategies } from './subjectStrategy';
+export { annotateByMajor } from './majorMatch';
