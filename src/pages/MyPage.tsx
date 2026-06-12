@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { supabase } from '../auth/supabaseClient';
 import { lookupMajor, MAJOR_FAMILIES } from '../data/majorFamilies';
 import { Button } from '../components/ui/Button';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import type { Track } from '../types';
 
 // /mypage — 최초 개인정보·희망학과 입력/수정. 동의 없으면 저장 차단.
@@ -21,6 +22,7 @@ const GRADES = ['고1', '고2', '고3', 'N수'];
 const MAJORS = Object.keys(MAJOR_FAMILIES);
 
 export function MyPage() {
+  useDocumentTitle('마이페이지');
   const { user } = useAuth();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
   const [consent, setConsent] = useState(false);

@@ -2,6 +2,7 @@ import { Hero } from '../components/ui/Hero';
 import { Section } from '../components/ui/Section';
 import { Card } from '../components/ui/Card';
 import { LinkButton } from '../components/ui/Button';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // 랜딩 페이지 — 네이비 Hero + 기능 소개 카드 + 도구 CTA.
 const FEATURES = [
@@ -28,6 +29,7 @@ const FEATURES = [
 ];
 
 export function HomePage() {
+  useDocumentTitle();
   return (
     <main>
       <Hero
