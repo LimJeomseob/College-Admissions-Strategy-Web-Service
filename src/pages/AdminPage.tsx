@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { supabase } from '../auth/supabaseClient';
 import { Button } from '../components/ui/Button';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // /admin — 관리자 목록 조회·추가·삭제 (RequireAdmin 가드 + RLS 이중 보호).
 
@@ -14,6 +15,7 @@ interface AdminRow {
 }
 
 export function AdminPage() {
+  useDocumentTitle('관리자 관리');
   const { user } = useAuth();
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [newEmail, setNewEmail] = useState('');

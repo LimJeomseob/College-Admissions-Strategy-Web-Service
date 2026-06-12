@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { Button } from '../components/ui/Button';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // /login — 구글 로그인 + 이메일 회원가입/로그인.
 export function LoginPage() {
@@ -12,6 +13,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  useDocumentTitle(mode === 'login' ? '로그인' : '회원가입');
 
   if (user) return <Navigate to="/mypage" replace />;
 

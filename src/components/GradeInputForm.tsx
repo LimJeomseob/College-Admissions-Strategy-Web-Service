@@ -32,11 +32,11 @@ const toRow = (s: SubjectInput): Row => ({
 
 export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
   const [rows, setRows] = useState<Row[]>([
-    { category: '국어', name: '국어', grade5: '2', credits: '4' },
-    { category: '수학', name: '수학', grade5: '3', credits: '4' },
+    { category: '국어', name: '국어', grade5: '1', credits: '4' },
+    { category: '수학', name: '수학', grade5: '2', credits: '4' },
     { category: '영어', name: '영어', grade5: '2', credits: '4' },
-    { category: '사회', name: '통합사회', grade5: '2', credits: '3' },
-    { category: '과학', name: '통합과학', grade5: '3', credits: '3' },
+    { category: '사회', name: '통합사회', grade5: '1', credits: '3' },
+    { category: '과학', name: '통합과학', grade5: '2', credits: '3' },
   ]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadWarnings, setUploadWarnings] = useState<string[]>([]);

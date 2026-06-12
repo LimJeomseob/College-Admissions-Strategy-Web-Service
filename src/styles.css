@@ -95,3 +95,9 @@ button.primary { background: var(--navy-700); color: #fff; border-color: var(--n
 
 .undisclosed { margin-top: 12px; }
 .disclaimer { font-size: .8rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 12px; }
+
+/* 모바일: 넓은 표는 패널 안에서 가로 스크롤(레이아웃 깨짐 방지) */
+@media (max-width: 640px) {
+  .panel, .input-form { overflow-x: auto; }
+  .admin-add { flex-wrap: wrap; }
+}
