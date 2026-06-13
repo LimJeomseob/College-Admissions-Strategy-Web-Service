@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { SubjectInput, Track } from '../types';
 import { parseGradeFile, ParseError } from '../data/parseGradeFile';
+import { isImageFile, ocrGradeImage } from '../data/ocrGradeImage';
+import { useAuth } from '../auth/AuthProvider';
 
 // ① 입력 계층: 성적표 양식 표 형태 입력 + 파일 업로드 프리필
 
@@ -39,6 +41,9 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadWarnings, setUploadWarnings] = useState<string[]>([]);
   const [uploadInfo, setUploadInfo] = useState<string | null>(null);
+  const [ocrBusy, setOcrBusy] = useState(false);
+
+  const { user } = useAuth();
 
   const update = (i: number, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
@@ -48,6 +53,29 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
     setUploadError(null);
     setUploadWarnings([]);
     setUploadInfo(null);
+
+    // 이미지 캡쳐 → OCR(로그인 필요). 그 외(csv·txt·xlsx) → 기존 파서.
+    if (isImageFile(file)) {
+      if (!user) {
+        setUploadError('성적표 이미지 인식은 로그인 후 이용할 수 있습니다.');
+        return;
+      }
+      setOcrBusy(true);
+      try {
+        const parsed = await ocrGradeImage(file);
+        setRows(parsed.rows.map(toRow));
+        setUploadInfo(
+          `이미지에서 ${parsed.rows.length}개 과목을 인식했습니다. 제출 전 반드시 확인·수정해 주세요.`,
+        );
+        if (parsed.track) onTrackChange(parsed.track);
+      } catch (e) {
+        setUploadError(e instanceof Error ? e.message : '이미지 인식에 실패했습니다.');
+      } finally {
+        setOcrBusy(false);
+      }
+      return;
+    }
+
     try {
       const parsed = await parseGradeFile(file);
       setRows(parsed.rows.map(toRow)); // 제출 전 편집 가능하게 프리필
@@ -78,17 +106,22 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
 
       <div className="upload-area">
         <label className="upload-label">
-          성적표 파일 업로드 (csv·txt·xlsx)
+          성적표 업로드 (이미지 캡쳐·csv·txt·xlsx)
           <input
             type="file"
-            accept=".csv,.txt,.xlsx,.xls"
+            accept="image/*,.csv,.txt,.xlsx,.xls"
+            disabled={ocrBusy}
             onChange={(e) => {
               void handleFile(e.target.files?.[0]);
               e.target.value = ''; // 같은 파일 재선택 허용
             }}
           />
         </label>
+        <p className="upload-hint muted">
+          성적표 화면을 캡쳐한 이미지를 올리면 자동으로 표를 채워줍니다{user ? '' : ' (로그인 필요)'}.
+        </p>
       </div>
+      {ocrBusy && <p className="upload-info">이미지를 인식하는 중입니다… 잠시만 기다려 주세요.</p>}
       {uploadInfo && <p className="upload-info">{uploadInfo}</p>}
       {uploadError && <p className="error">{uploadError}</p>}
       {uploadWarnings.length > 0 && (
