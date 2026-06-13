@@ -1,22 +1,39 @@
 /* ───────────────────────────────────────────────────────────
    디자인 토큰 (라이브러리 없이 CSS 변수)
-   isyou1.com 참고: 차분한 네이비 + 넉넉한 여백 + 카드 중심 구성
+   따뜻하고 신뢰감 있는 교육 서비스 톤:
+   화이트 배경 · 베이지/탄 카드 · 그린/블랙 알약 버튼 · 굵은 헤딩.
    main.tsx 에서 styles.css 보다 먼저 import 되어 토큰을 선공급한다.
    ─────────────────────────────────────────────────────────── */
 :root {
-  /* 색 — primary 네이비 스케일 */
-  --navy-900: #0b1f3a;
-  --navy-700: #16345c;
-  --navy-500: #2b5a93;
-
   /* 잉크 / 보조 / 표면 */
-  --ink: #1f2328;
-  --muted: #57606a;
+  --ink: #1a1a1a;          /* 헤딩(진한 블랙) */
+  --muted: #555555;        /* 본문(미디엄 그레이) */
   --surface: #ffffff;
-  --surface-soft: #f6f8fa;
-  --border: #d0d7de;
+  --surface-soft: #faf9f6; /* 아주 옅은 웜 오프화이트 */
+  --border: #ececec;
 
-  /* 위험 밴드색 — 기존 클래스(.band-*) 보존을 위해 동일 의미로 재매핑 */
+  /* 카드 — 따뜻한 베이지/탄 그라데이션 */
+  --tan-200: #d9c3a5;
+  --tan-400: #c9ae8c;
+  --tan-ink: #3a3320;      /* 베이지 위 본문 텍스트 */
+
+  /* 포인트 — 그린 / 블랙 알약 / 옐로우 */
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --pill-black: #1a1a1a;
+  --yellow: #facc15;
+
+  /* 배경 파스텔 장식 */
+  --pastel-blue: #93c5fd;
+  --pastel-red: #fca5a5;
+  --pastel-orange: #fdba74;
+
+  /* 하위호환 별칭(기존 컴포넌트 참조) — primary 계열을 그린으로 재매핑 */
+  --navy-900: #1a1a1a;
+  --navy-700: #16a34a;
+  --navy-500: #22c55e;
+
+  /* 위험 밴드색 — 기존 클래스(.band-*) 보존(의미 유지) */
   --stable: #1a7f37;
   --moderate: #9a6700;
   --reach: #cf222e;
@@ -31,21 +48,23 @@
   --space-7: 48px;
   --space-8: 64px;
 
-  /* 타이포 (한글 포함 system stack) */
-  --font-sans: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  /* 타이포 (Pretendard 우선, 한글 system 폴백) */
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, "Apple SD Gothic Neo",
+    "Malgun Gothic", "Noto Sans KR", sans-serif;
   --fs-sm: 0.85rem;
   --fs-base: 1rem;
   --fs-lg: 1.15rem;
-  --fs-xl: 1.5rem;
-  --fs-2xl: 2.2rem;
+  --fs-xl: 1.6rem;
+  --fs-2xl: 2.6rem;
 
   /* 모서리 / 그림자 */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(11, 31, 58, 0.08);
-  --shadow-md: 0 4px 16px rgba(11, 31, 58, 0.10);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.10);
 
   /* 레이아웃 */
-  --container-max: 1040px;
+  --container-max: 1100px;
 }

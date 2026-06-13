@@ -34,7 +34,15 @@ export function HomePage() {
     <main>
       <Hero
         title={<>5등급제 내신으로 그리는<br />데이터 기반 대입 전략</>}
-        subtitle="성적 입력 한 번으로 지원 가능 대학·학과와 교과전형 준비전략을 안내합니다. 과거 입결에 현재 위치를 투영한 참고 지표입니다."
+        subtitle={
+          <>
+            성적 입력 한 번으로 지원 가능 대학·학과를 찾아보세요.
+            <br />
+            교과전형 준비전략까지 한눈에 안내합니다.
+            <br />
+            과거 입결에 현재 위치를 투영한 참고 지표입니다.
+          </>
+        }
         actions={
           <>
             <LinkButton to="/tool" variant="primary">전략 도구 시작하기</LinkButton>

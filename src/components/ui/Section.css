@@ -1,5 +1,17 @@
-.ui-section { padding: var(--space-7) var(--space-4); }
+.ui-section { padding: var(--space-8) var(--space-4); }
 .ui-section-soft { background: var(--surface-soft); }
-.ui-section-inner { max-width: var(--container-max); margin: 0 auto; }
-.ui-section-title { font-size: var(--fs-xl); margin: 0 0 var(--space-2); color: var(--ink); }
-.ui-section-subtitle { color: var(--muted); margin: 0 0 var(--space-5); font-size: var(--fs-lg); }
+.ui-section-inner { max-width: var(--container-max); margin: 0 auto; text-align: center; }
+.ui-section-title {
+  font-size: var(--fs-xl);
+  margin: 0 0 var(--space-3);
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.ui-section-subtitle {
+  color: var(--muted);
+  margin: 0 auto var(--space-6);
+  font-size: var(--fs-lg);
+  line-height: 1.7;
+  max-width: 620px;
+}

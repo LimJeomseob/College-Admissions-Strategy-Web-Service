@@ -1,0 +1,27 @@
+.floating-contact {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--yellow);
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: var(--fs-base);
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+.floating-contact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 640px) {
+  .floating-contact { right: 14px; bottom: 14px; padding: 11px 16px; }
+  .floating-contact-text { display: none; } /* 모바일은 아이콘만 */
+}

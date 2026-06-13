@@ -4,11 +4,22 @@
   --bg-soft: var(--surface-soft);
 }
 * { box-sizing: border-box; }
-body { margin: 0; font-family: var(--font-sans); color: var(--ink); }
+html, body { background: var(--surface); }
+body { margin: 0; font-family: var(--font-sans); color: var(--ink); overflow-x: hidden; }
 .container { max-width: var(--container-max); margin: 0 auto; padding: 24px 16px 64px; }
 
 /* 레이아웃 셸 */
-.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; position: relative; }
+/* 본문/푸터는 배경 장식 위에 */
+main, .site-footer { position: relative; z-index: 1; }
+
+/* 좌측 하단 파스텔 기하 배경 장식 (콘텐츠 뒤, 클릭 비활성) */
+.bg-decor { position: fixed; left: -40px; bottom: -40px; width: 360px; height: 360px; z-index: 0; pointer-events: none; }
+.bg-decor .decor { position: absolute; border-radius: 28px; filter: blur(8px); opacity: 0.35; transform: rotate(18deg); }
+.decor-blue { width: 150px; height: 150px; left: 30px; bottom: 120px; background: var(--pastel-blue); }
+.decor-orange { width: 120px; height: 120px; left: 120px; bottom: 60px; background: var(--pastel-orange); opacity: 0.32; }
+.decor-red { width: 100px; height: 100px; left: 10px; bottom: 20px; background: var(--pastel-red); opacity: 0.3; }
+@media (max-width: 640px) { .bg-decor { display: none; } }
 
 /* 랜딩 기능 카드 그리드 */
 .home-feature-grid {
@@ -19,14 +30,14 @@ body { margin: 0; font-family: var(--font-sans); color: var(--ink); }
 h1 { font-size: 1.5rem; margin: 0 0 4px; }
 h2 { font-size: 1.15rem; margin: 0 0 12px; }
 .subtitle { color: var(--muted); margin-top: 0; }
-.badge { background: #ddf4ff; color: var(--navy-700); border-radius: 999px; padding: 2px 8px; font-size: .75rem; margin-left: 8px; }
+.badge { background: #dcfce7; color: var(--green-600); border-radius: 999px; padding: 2px 8px; font-size: .75rem; margin-left: 8px; }
 .error { color: var(--reach); }
 
-.panel, .input-form { border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panel, .input-form { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
 table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
 th { background: var(--bg-soft); }
-input, select { padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; }
+input, select { padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .grade-table input { width: 70px; }
 .grade-table input[type="text"], .grade-table td:nth-child(2) input { width: 110px; }
 
@@ -43,8 +54,9 @@ input, select { padding: 4px 6px; border: 1px solid var(--line); border-radius: 
 
 .track-select { margin-bottom: 12px; display: flex; gap: 14px; align-items: center; }
 .form-actions { margin-top: 12px; display: flex; gap: 8px; }
-button { cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 6px 12px; }
-button.primary { background: var(--navy-700); color: #fff; border-color: var(--navy-700); }
+button { cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 6px 12px; font: inherit; }
+button.primary { background: var(--green-500); color: #fff; border-color: var(--green-500); border-radius: var(--radius-pill); font-weight: 700; padding: 8px 18px; }
+button.primary:hover { background: var(--green-600); border-color: var(--green-600); }
 
 .avg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
 .avg-cell { background: var(--bg-soft); border-radius: 8px; padding: 8px; text-align: center; }

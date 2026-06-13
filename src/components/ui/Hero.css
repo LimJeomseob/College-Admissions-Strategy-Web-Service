@@ -1,20 +1,27 @@
 .ui-hero {
-  background: linear-gradient(160deg, var(--navy-900) 0%, var(--navy-700) 100%);
-  color: #fff;
-  padding: var(--space-8) var(--space-4);
+  background: transparent;
+  color: var(--ink);
+  padding: var(--space-8) var(--space-4) var(--space-7);
 }
-.ui-hero-inner { max-width: var(--container-max); margin: 0 auto; text-align: center; }
+.ui-hero-inner { max-width: 820px; margin: 0 auto; text-align: center; }
 .ui-hero-title {
   font-size: var(--fs-2xl);
-  line-height: 1.2;
-  margin: 0 0 var(--space-4);
+  line-height: 1.18;
+  margin: 0 0 var(--space-5);
   font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 .ui-hero-subtitle {
   font-size: var(--fs-lg);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--muted);
   max-width: 640px;
   margin: 0 auto var(--space-6);
-  line-height: 1.6;
+  line-height: 1.75;
 }
 .ui-hero-actions { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .ui-hero { padding: var(--space-7) var(--space-4) var(--space-6); }
+  .ui-hero-title { font-size: 2rem; }
+}
