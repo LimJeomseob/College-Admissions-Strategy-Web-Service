@@ -30,6 +30,8 @@ export function ToolPage() {
   const [track, setTrack] = useState<Track>('인문');
   const [desiredMajor, setDesiredMajor] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  // 로그인+동의 사용자만 성적 평균을 관리자 상담용으로 저장(동의 없으면 안내만).
+  const [consented, setConsented] = useState<boolean | null>(null);
 
   const { user } = useAuth();
 
@@ -39,17 +41,25 @@ export function ToolPage() {
 
   // 로그인 사용자는 저장된 프로필의 희망학과를 도구에 자동 연동(Phase B).
   useEffect(() => {
-    if (!supabase || !user) return;
+    if (!supabase || !user) {
+      setConsented(null);
+      return;
+    }
     let active = true;
     supabase
       .from('profiles')
-      .select('desired_major, track')
+      .select('desired_major, track, consent_at')
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!active || !data) return;
+        if (!active) return;
+        if (!data) {
+          setConsented(false);
+          return;
+        }
         if (data.desired_major) setDesiredMajor(data.desired_major);
         if (data.track === '인문' || data.track === '자연') setTrack(data.track);
+        setConsented(Boolean(data.consent_at));
       });
     return () => {
       active = false;
@@ -82,6 +92,24 @@ export function ToolPage() {
     return { averages, conv, triageResult, matchOutput, strategies };
   }, [data, submitted, subjects, track, desiredMajor]);
 
+  // 로그인+동의 사용자의 조합 평균을 본인 프로필에 저장(관리자 상담/현황용).
+  // 원점수는 저장하지 않고 4개 조합 평균만 저장. 미동의 시 저장 생략.
+  useEffect(() => {
+    if (!supabase || !user || !consented || !result) return;
+    const lk = lookupMajor(desiredMajor);
+    supabase
+      .from('profiles')
+      .update({
+        combo_averages: result.averages,
+        grades_updated_at: new Date().toISOString(),
+        desired_major: desiredMajor || null,
+        desired_families: lk.families,
+        track,
+      })
+      .eq('id', user.id)
+      .then(() => undefined);
+  }, [result, user, consented, desiredMajor, track]);
+
   if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
   if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
 
@@ -111,6 +139,11 @@ export function ToolPage() {
           <ConversionPanel averages={result.averages} conv={result.conv} triage={result.triageResult} />
           <StrategyCards cards={result.strategies} subjectOnly={result.triageResult.subjectOnly} />
           <ResultList output={result.matchOutput} subjectOnly={result.triageResult.subjectOnly} />
+          {user && consented === false && (
+            <p className="upload-info">
+              마이페이지에서 개인정보 수집·이용에 동의하면, 입력한 성적 평균이 상담용으로 저장됩니다.
+            </p>
+          )}
           <p className="disclaimer">{DISCLAIMER}</p>
         </section>
       )}
