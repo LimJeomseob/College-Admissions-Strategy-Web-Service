@@ -12,9 +12,10 @@ const BAND_CLASS: Record<RiskBand, string> = {
 interface Props {
   output: MatchOutput;
   subjectOnly: boolean;
+  onSelect?: (univName: string) => void;
 }
 
-export function ResultList({ output, subjectOnly }: Props) {
+export function ResultList({ output, subjectOnly, onSelect }: Props) {
   const list = subjectOnly
     ? output.matched.filter((m) => m.row.admissionType === '학생부교과')
     : output.matched;
@@ -40,7 +41,11 @@ export function ResultList({ output, subjectOnly }: Props) {
           </thead>
           <tbody>
             {list.map((m, i) => (
-              <tr key={i} className={BAND_CLASS[m.band]}>
+              <tr
+                key={i}
+                className={`${BAND_CLASS[m.band]}${onSelect ? ' clickable' : ''}`}
+                onClick={onSelect ? () => onSelect(m.row.univName) : undefined}
+              >
                 <td><span className="band-tag">{m.band}</span></td>
                 <td>{m.row.univName}</td>
                 <td>

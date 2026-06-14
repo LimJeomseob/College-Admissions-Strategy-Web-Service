@@ -17,6 +17,7 @@ import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { ConversionPanel } from '../components/ConversionPanel';
 import { ResultList } from '../components/ResultList';
 import { StrategyCards } from '../components/StrategyCards';
+import { UniversityDetailModal } from '../components/UniversityDetailModal';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import type { DataLayer, SubjectInput, Track } from '../types';
 
@@ -32,6 +33,8 @@ export function ToolPage() {
   const [submitted, setSubmitted] = useState(false);
   // 로그인+동의 사용자만 성적 평균을 관리자 상담용으로 저장(동의 없으면 안내만).
   const [consented, setConsented] = useState<boolean | null>(null);
+  // 추천카드/행 클릭 시 상세 모달에 표시할 대학.
+  const [selectedUniv, setSelectedUniv] = useState<string | null>(null);
 
   const { user } = useAuth();
 
@@ -137,8 +140,16 @@ export function ToolPage() {
       {result && (
         <section className="results">
           <ConversionPanel averages={result.averages} conv={result.conv} triage={result.triageResult} />
-          <StrategyCards cards={result.strategies} subjectOnly={result.triageResult.subjectOnly} />
-          <ResultList output={result.matchOutput} subjectOnly={result.triageResult.subjectOnly} />
+          <StrategyCards
+            cards={result.strategies}
+            subjectOnly={result.triageResult.subjectOnly}
+            onSelect={setSelectedUniv}
+          />
+          <ResultList
+            output={result.matchOutput}
+            subjectOnly={result.triageResult.subjectOnly}
+            onSelect={setSelectedUniv}
+          />
           {user && consented === false && (
             <p className="upload-info">
               마이페이지에서 개인정보 수집·이용에 동의하면, 입력한 성적 평균이 상담용으로 저장됩니다.
@@ -146,6 +157,14 @@ export function ToolPage() {
           )}
           <p className="disclaimer">{DISCLAIMER}</p>
         </section>
+      )}
+
+      {selectedUniv && (
+        <UniversityDetailModal
+          univName={selectedUniv}
+          admissions={data.admissions}
+          onClose={() => setSelectedUniv(null)}
+        />
       )}
     </main>
   );

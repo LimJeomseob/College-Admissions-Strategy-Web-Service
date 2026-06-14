@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { convert } from '../../src/engine/convert';
 import type {
@@ -89,5 +89,33 @@ const layer: DataLayer = {
 
 writeDataLayer(layer);
 verifyJoins(layer);
+
+// ── 대학별 상세 DB (univ-md/*.md → universityDetails.json) ──
+// 키: 기본 대학명(파일명), 값: HTML 문자열(클릭 시 모달 렌더). 자체 신뢰 데이터지만
+// 방어적으로 <script>/on*= 핸들러 제거.
+function sanitize(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+    .trim();
+}
+
+function buildUniversityDetails(): Record<string, string> {
+  const dir = resolve(DATA, 'univ-md');
+  const details: Record<string, string> = {};
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith('.md')) continue;
+    const name = file.replace(/\.md$/, '').trim();
+    details[name] = sanitize(readFileSync(resolve(dir, file), 'utf-8'));
+  }
+  return details;
+}
+
+const details = buildUniversityDetails();
+const detailsPath = resolve(process.cwd(), 'public/data/universityDetails.json');
+mkdirSync(resolve(process.cwd(), 'public/data'), { recursive: true });
+writeFileSync(detailsPath, JSON.stringify(details), 'utf-8');
+console.log(`✓ universityDetails.json 생성 — 대학 ${Object.keys(details).length}개`);
 console.log(`  계열별 입결: ${admissions.filter((a) => a.track === '인문').length} 인문 / ${admissions.filter((a) => a.track === '자연').length} 자연`);
 console.log(`  대학 수: ${uniMap.size}`);

@@ -86,6 +86,29 @@ button.primary:hover { background: var(--green-600); border-color: var(--green-6
 .advantage { font-size: .85rem; background: var(--bg-soft); border-radius: 6px; padding: 6px 8px; }
 .muted { color: var(--muted); }
 
+/* 클릭 가능한 추천(카드/표 행) */
+.strategy-card.clickable, .result-table tr.clickable { cursor: pointer; }
+.strategy-card.clickable { transition: box-shadow .12s, border-color .12s, transform .12s; }
+.strategy-card.clickable:hover { border-color: var(--navy-700, #355); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.strategy-card.clickable:focus-visible { outline: 2px solid var(--navy-700, #355); outline-offset: 2px; }
+.result-table tr.clickable:hover td { background: var(--bg-soft); }
+
+/* 대학 상세 모달 */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
+.modal-dialog { background: var(--surface, #fff); border-radius: var(--radius-md, 10px); max-width: 720px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.modal-head h3 { margin: 0; font-size: 1.1rem; }
+.modal-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+.modal-close:hover { background: var(--bg-soft); }
+.modal-body { padding: 16px 18px; overflow-y: auto; }
+.modal-body h4 { margin: 16px 0 8px; font-size: .95rem; }
+.modal-body section:first-child h4 { margin-top: 0; }
+.univ-detail-html { font-size: .85rem; overflow-x: auto; }
+.univ-detail-html table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+.univ-detail-html th, .univ-detail-html td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.univ-detail-html th { background: var(--bg-soft); }
+.univ-detail-html p { margin: 2px 0; }
+
 /* 인증/마이페이지/관리자 */
 .auth-page { max-width: 560px; }
 .auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
