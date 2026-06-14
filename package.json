@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "etl": "tsx scripts/etl/index.ts",
-    "etl:mock": "tsx scripts/etl/generateMock.ts"
+    "etl:mock": "tsx scripts/etl/generateMock.ts",
+    "etl:2028": "tsx scripts/etl/build2028.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

@@ -28,7 +28,7 @@ export function StrategyCards({ cards }: Props) {
                 <div><dt>활용지표</dt><dd>{c.detail.indicator}</dd></div>
               </dl>
             ) : (
-              <p className="muted">수도권 31개교 외 — 상세 전략 미제공(입결만)</p>
+              <p className="muted">교과 반영방법 상세 준비 중 — 입결 라인 기반 추천</p>
             )}
             <p className="advantage">{c.advantage}</p>
           </article>
