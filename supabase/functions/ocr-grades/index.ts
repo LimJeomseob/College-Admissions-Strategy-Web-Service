@@ -47,9 +47,10 @@ interface OcrResult {
 function pickProvider(): 'anthropic' | 'openai' | 'gemini' | null {
   const forced = Deno.env.get('OCR_PROVIDER');
   if (forced === 'anthropic' || forced === 'openai' || forced === 'gemini') return forced;
-  if (Deno.env.get('ANTHROPIC_API_KEY')) return 'anthropic';
-  if (Deno.env.get('OPENAI_API_KEY')) return 'openai';
+  // 자동 감지: Gemini 우선(현재 운영 키). 이후 OpenAI → Anthropic.
   if (Deno.env.get('GEMINI_API_KEY')) return 'gemini';
+  if (Deno.env.get('OPENAI_API_KEY')) return 'openai';
+  if (Deno.env.get('ANTHROPIC_API_KEY')) return 'anthropic';
   return null;
 }
 
