@@ -117,7 +117,7 @@ async function callOpenAI(imageBase64: string, mimeType: string): Promise<string
 // ── Google Gemini (vision) ──
 async function callGemini(imageBase64: string, mimeType: string): Promise<string> {
   const key = Deno.env.get('GEMINI_API_KEY')!;
-  const model = Deno.env.get('OCR_MODEL') ?? 'gemini-2.0-flash';
+  const model = Deno.env.get('OCR_MODEL') ?? 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: 'POST',
