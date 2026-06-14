@@ -24,9 +24,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      # 원본 DB는 저장소에 없으므로, 데이터가 커밋되지 않은 경우 목업으로 빌드.
-      # 실제 데이터 파이프라인이 준비되면 이 단계를 `npm run etl`로 교체.
-      - run: npm run etl:mock
+      # 2028 입결 라인표(scripts/etl/data/*.csv)로 실데이터 dataLayer.json 생성.
+      - run: npm run etl:2028
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
