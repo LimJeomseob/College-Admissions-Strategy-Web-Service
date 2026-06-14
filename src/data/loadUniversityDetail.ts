@@ -34,3 +34,31 @@ export async function getUniversityDetail(univName: string): Promise<string | nu
   const all = await load();
   return all[univName] ?? all[normalizeUnivName(univName)] ?? null;
 }
+
+// ── ④ 카드용 2줄 요약(univSummaries.json) ──
+let sumCache: DetailMap | null = null;
+let sumInflight: Promise<DetailMap> | null = null;
+
+/** 요약 맵 전체를 1회 lazy 로드(카드 렌더에서 사용). */
+export function loadUniversitySummaries(): Promise<DetailMap> {
+  if (sumCache) return Promise.resolve(sumCache);
+  if (!sumInflight) {
+    const url = `${import.meta.env.BASE_URL}data/univSummaries.json`;
+    sumInflight = fetch(url)
+      .then((r) => (r.ok ? (r.json() as Promise<DetailMap>) : ({} as DetailMap)))
+      .then((d) => {
+        sumCache = d;
+        return d;
+      })
+      .catch(() => {
+        sumCache = {};
+        return sumCache;
+      });
+  }
+  return sumInflight;
+}
+
+/** 요약 맵에서 대학 요약 문자열을 찾는다(정규화 매칭). */
+export function pickSummary(map: DetailMap, univName: string): string | null {
+  return map[univName] ?? map[normalizeUnivName(univName)] ?? null;
+}
