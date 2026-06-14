@@ -19,30 +19,6 @@ const CORS = {
 
 const CATEGORIES = ['국어', '수학', '영어', '사회', '과학', '기타'] as const;
 
-// 모델에 요구하는 출력 스키마(전 provider 공통).
-const SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    track: { type: 'string', description: "계열: '인문' 또는 '자연', 불명확하면 빈 문자열" },
-    rows: {
-      type: 'array',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          category: { type: 'string', enum: CATEGORIES as unknown as string[] },
-          name: { type: 'string' },
-          grade5: { type: 'number' },
-          credits: { type: 'number' },
-        },
-        required: ['category', 'name', 'grade5', 'credits'],
-      },
-    },
-  },
-  required: ['track', 'rows'],
-};
-
 const SYSTEM_PROMPT =
   '너는 한국 고등학교 성적표(교과 성적) 이미지를 읽어 구조화하는 도구다. ' +
   '이미지에서 과목별 행을 추출한다. ' +
@@ -155,7 +131,7 @@ async function callGemini(imageBase64: string, mimeType: string): Promise<string
           ],
         },
       ],
-      generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA },
+      generationConfig: { responseMimeType: 'application/json' },
     }),
   });
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
