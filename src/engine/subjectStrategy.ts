@@ -54,7 +54,7 @@ function diagnose(
   averages: ComboAverages,
 ): string {
   if (!detail) {
-    return '수도권 31개교 외 대학이라 교과전형 상세 전략은 제공되지 않습니다(입결 정보만 참고).';
+    return '교과 반영방법 상세 데이터는 준비 중입니다 — 입결 라인 기반으로 추천합니다.';
   }
   const comboAvg = averages[detail.combo];
   const allAvg = averages['전과목'];
