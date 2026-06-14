@@ -51,7 +51,8 @@ const SYSTEM_PROMPT =
   '표기된 등급 숫자가 1~5를 벗어나면 가장 가까운 5등급제 값으로 보정한다. ' +
   'credits는 단위수(이수단위) 숫자다. 단위수가 없으면 1로 한다. ' +
   '계열(track)이 명시되어 있으면 "인문" 또는 "자연"으로, 없으면 빈 문자열로 둔다. ' +
-  '반드시 지정된 JSON 스키마로만 응답한다.';
+  '설명·인사말·코드블록(```) 없이 순수 JSON 객체 하나만 출력한다. ' +
+  '형태: {"track": "", "rows": [{"category": "", "name": "", "grade5": 0, "credits": 0}]}';
 
 const USER_PROMPT =
   '이 성적표 이미지의 과목별 성적을 추출해 JSON으로 반환해줘. 표의 모든 과목 행을 포함해.';
@@ -100,7 +101,6 @@ async function callAnthropic(imageBase64: string, mimeType: string): Promise<str
           ],
         },
       ],
-      output_config: { format: { type: 'json_schema', schema: SCHEMA } },
     }),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
@@ -235,6 +235,11 @@ Deno.serve(async (req: Request) => {
     return respond(result);
   } catch (e) {
     console.error('ocr-grades error', e);
-    return respond({ error: '이미지 인식 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }, 502);
+    // 진단용: 상위 API 오류 요약을 함께 반환(앞 300자). 원인 파악 후 제거 가능.
+    const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    return respond(
+      { error: '이미지 인식 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', detail },
+      502,
+    );
   }
 });

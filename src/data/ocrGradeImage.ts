@@ -73,6 +73,7 @@ export async function ocrGradeImage(file: File): Promise<OcrGradeResult> {
       try {
         const body = await ctx.json();
         if (body?.error) msg = String(body.error);
+        if (body?.detail) msg += ` (${String(body.detail)})`;
       } catch {
         /* noop */
       }
