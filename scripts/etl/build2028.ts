@@ -117,5 +117,71 @@ const detailsPath = resolve(process.cwd(), 'public/data/universityDetails.json')
 mkdirSync(resolve(process.cwd(), 'public/data'), { recursive: true });
 writeFileSync(detailsPath, JSON.stringify(details), 'utf-8');
 console.log(`✓ universityDetails.json 생성 — 대학 ${Object.keys(details).length}개`);
+
+// ── ④ 카드용 2줄 요약 (univSummaries.json) ──
+// 각 대학 상세의 첫 표에서 전형방법·수능최저·반영교과 + 말미 '지원 가능 성적' 성적대 추출.
+function cleanText(s: string): string {
+  return s
+    .replace(/<\/p>\s*<p[^>]*>/gi, ', ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\\([~*_|–-])/g, '$1') // 마크다운 이스케이프(\~ 등) 해제
+    .replace(/\s+/g, ' ')
+    .replace(/^[·:\s]+/, '')
+    .replace(/[,·\s]+$/, '')
+    .trim();
+}
+function trunc(s: string, n: number): string {
+  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
+function cellValue(md: string, labels: string[]): string {
+  for (const label of labels) {
+    const re = new RegExp(
+      `<td>(?:(?!</td>)[\\s\\S])*?${label}(?:(?!</td>)[\\s\\S])*?</td>\\s*<td>([\\s\\S]*?)</td>`,
+    );
+    const m = md.match(re);
+    if (m) return cleanText(m[1]);
+  }
+  return '';
+}
+function scoreLine(md: string): string {
+  const idx = ['지원 가능 성적', '지원가능 성적', '지원 가능'].map((k) => md.indexOf(k)).find((i) => i >= 0);
+  if (idx == null) return '';
+  const tail = md.slice(idx);
+  const cands = [
+    ...[...tail.matchAll(/\*\*([^*]+)\*\*/g)].map((x) => x[1]),
+    ...[...tail.matchAll(/<strong>([^<]+)<\/strong>/g)].map((x) => x[1]),
+  ]
+    .map((c) => cleanText(c))
+    .filter((c) => /등급|점|만점/.test(c))
+    .filter((c) => !/^\(|기준\)$|성적대$/.test(c)); // "(5등급기준)"·"…성적대" 라벨 제외
+  // 범위(1.0등급 ~ 1.05등급) 또는 '만점' 우선, 없으면 숫자 2개 이상
+  const val =
+    cands.find((c) => /등급.*[~∼〜–-].*등급|만점/.test(c)) ??
+    cands.find((c) => (c.match(/\d/g) ?? []).length >= 2) ??
+    cands[0] ??
+    '';
+  return val;
+}
+function buildUnivSummaries(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [name, html] of Object.entries(details)) {
+    const method = trunc(cellValue(html, ['전형 방법', '전형방법']), 30);
+    const minCsat = trunc(cellValue(html, ['수능 최저', '수능최저']), 44);
+    const subjects = trunc(cellValue(html, ['기본 반영교과', '반영교과', '반영 교과']), 30);
+    const score = trunc(scoreLine(html), 24);
+    const line1 = [method && `전형 ${method}`, minCsat && `최저 ${minCsat}`].filter(Boolean).join(' · ');
+    const line2 = [subjects && `반영 ${subjects}`, score && `지원가능 ${score}`].filter(Boolean).join(' · ');
+    const summary = [line1, line2].filter(Boolean).join('\n');
+    if (summary) out[name] = summary;
+  }
+  return out;
+}
+const summaries = buildUnivSummaries();
+writeFileSync(
+  resolve(process.cwd(), 'public/data/univSummaries.json'),
+  JSON.stringify(summaries),
+  'utf-8',
+);
+console.log(`✓ univSummaries.json 생성 — 요약 ${Object.keys(summaries).length}개`);
 console.log(`  계열별 입결: ${admissions.filter((a) => a.track === '인문').length} 인문 / ${admissions.filter((a) => a.track === '자연').length} 자연`);
 console.log(`  대학 수: ${uniMap.size}`);
