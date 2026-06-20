@@ -1,4 +1,4 @@
-import type { DeptRow } from '../types';
+import type { ConversionRow, DeptRow } from '../types';
 
 // 학과 입결 DB(public/data/deptAdmissions.json) 접근.
 // 대학 canon 키로 그룹화돼 있음. 선택 대학명을 동일 canon으로 변환해 조회.
@@ -41,6 +41,25 @@ export function canonUniv(name: string): string {
 export function deptsFor(map: DeptMap, univName: string): DeptRow[] {
   return map[canonUniv(univName)] ?? [];
 }
+
+/** 9등급 값을 환산표 기준 5등급으로 역환산(근사). 범위 밖은 끝점으로 클램프. */
+export function nine2five(conversion: ConversionRow[], g9: number | null): number | null {
+  if (g9 == null || conversion.length === 0) return null;
+  const t = [...conversion].sort((a, b) => a.est9 - b.est9);
+  if (g9 <= t[0].est9) return round2(t[0].avg5);
+  const last = t[t.length - 1];
+  if (g9 >= last.est9) return round2(last.avg5);
+  for (let i = 0; i < t.length - 1; i++) {
+    const lo = t[i];
+    const hi = t[i + 1];
+    if (g9 >= lo.est9 && g9 <= hi.est9) {
+      const r = (g9 - lo.est9) / (hi.est9 - lo.est9);
+      return round2(lo.avg5 + r * (hi.avg5 - lo.avg5));
+    }
+  }
+  return round2(last.avg5);
+}
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** 9등급 컷(g50/g70)과 학생 환산등급(est9)으로 구간 판정 */
 export function bandOf(est9: number, g50: number | null, g70: number | null): '안정' | '적정' | '소신' | '—' {

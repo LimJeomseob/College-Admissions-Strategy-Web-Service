@@ -197,6 +197,7 @@ export function ToolPage() {
             desiredMajor={desiredMajor}
             est9={result.conv.est9}
             deptMap={deptMap}
+            conversion={data.conversion}
             loading={deptLoading}
           />
         ) : (
