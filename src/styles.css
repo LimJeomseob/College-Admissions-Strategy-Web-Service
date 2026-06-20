@@ -109,6 +109,9 @@ button.primary:hover { background: var(--green-600); border-color: var(--green-6
 .dept-group-header td { background: var(--bg-soft); font-size: .9rem; cursor: pointer; position: sticky; left: 0; border-top: 2px solid var(--line); }
 .dept-group-header:hover td { background: var(--line); }
 .dept-group-header .caret { display: inline-block; width: 1em; color: var(--muted); }
+.band-badges { margin-left: 6px; display: inline-flex; gap: 4px; vertical-align: middle; }
+.band-badges .band-tag { font-size: .7rem; }
+.pivot-cell { display: flex; flex-direction: column; gap: 1px; font-size: .82rem; white-space: nowrap; }
 
 /* 클릭 가능한 추천(카드/표 행) */
 .strategy-card.clickable, .result-table tr.clickable { cursor: pointer; }
