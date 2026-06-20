@@ -5,6 +5,7 @@ import type {
   AdmissionRow,
   ConversionRow,
   DataLayer,
+  DeptRow,
   Track,
 } from '../../src/types';
 import { writeDataLayer, verifyJoins } from './writeOutput';
@@ -183,5 +184,36 @@ writeFileSync(
   'utf-8',
 );
 console.log(`✓ univSummaries.json 생성 — 요약 ${Object.keys(summaries).length}개`);
+// ── ④ 지원가능 학과 입결 DB (deptAdmissions.csv → deptAdmissions.json) ──
+// 대학 canon 키로 그룹화. 런타임에서 선택 대학명을 동일 canon으로 매칭해 조회.
+function buildDeptAdmissions(): Record<string, DeptRow[]> {
+  const map: Record<string, DeptRow[]> = {};
+  const numOrNull = (s: string) => (s ? Number(s) : null);
+  for (const r of readCsv('deptAdmissions.csv')) {
+    const canon = r.univCanon;
+    if (!canon) continue;
+    (map[canon] ??= []).push({
+      year: Number(r.year),
+      type: r.type,
+      detail: r.detail,
+      dept: r.dept,
+      quota: numOrNull(r.quota),
+      comp: numOrNull(r.comp),
+      addPass: numOrNull(r.addPass),
+      g50: numOrNull(r.g50),
+      g70: numOrNull(r.g70),
+    });
+  }
+  return map;
+}
+const deptMap = buildDeptAdmissions();
+const deptRowCount = Object.values(deptMap).reduce((s, a) => s + a.length, 0);
+writeFileSync(
+  resolve(process.cwd(), 'public/data/deptAdmissions.json'),
+  JSON.stringify(deptMap),
+  'utf-8',
+);
+console.log(`✓ deptAdmissions.json 생성 — 대학 ${Object.keys(deptMap).length}개 / 학과행 ${deptRowCount}`);
+
 console.log(`  계열별 입결: ${admissions.filter((a) => a.track === '인문').length} 인문 / ${admissions.filter((a) => a.track === '자연').length} 자연`);
 console.log(`  대학 수: ${uniMap.size}`);

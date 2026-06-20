@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DISCLAIMER } from '../config';
 import { loadDataLayer } from '../data/loadDataLayer';
+import { loadDeptAdmissions } from '../data/loadDeptAdmissions';
 import {
   annotateByMajor,
   buildSubjectStrategies,
@@ -15,14 +16,21 @@ import { supabase } from '../auth/supabaseClient';
 import { GradeInputForm } from '../components/GradeInputForm';
 import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { ConversionPanel } from '../components/ConversionPanel';
-import { ResultList } from '../components/ResultList';
+import { DeptResultTable } from '../components/DeptResultTable';
 import { StrategyCards } from '../components/StrategyCards';
 import { UniversityDetailModal } from '../components/UniversityDetailModal';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import type { DataLayer, SubjectInput, Track } from '../types';
+import type { DataLayer, DeptRow, SubjectInput, Track } from '../types';
 
-// 전략 도구 페이지 — 기존 App 본문을 라우팅 도입에 맞춰 분리.
-// 입력→환산→매칭→전략 파이프라인은 그대로 유지(엔진 비변경).
+type TabId = 'input' | 'convert' | 'strategy' | 'apply';
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'input', label: '① 성적 입력' },
+  { id: 'convert', label: '② 성적 체계 환산' },
+  { id: 'strategy', label: '③ 교과전형 준비전략' },
+  { id: 'apply', label: '④ 지원 가능 대학·학과' },
+];
+
+// 전략 도구 — 단계별 탭 구성. ③에서 대학을 선택하면 ④ 표가 만들어진다.
 export function ToolPage() {
   useDocumentTitle('전략 도구');
   const [data, setData] = useState<DataLayer | null>(null);
@@ -31,10 +39,13 @@ export function ToolPage() {
   const [track, setTrack] = useState<Track>('인문');
   const [desiredMajor, setDesiredMajor] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  // 로그인+동의 사용자만 성적 평균을 관리자 상담용으로 저장(동의 없으면 안내만).
   const [consented, setConsented] = useState<boolean | null>(null);
-  // 추천카드/행 클릭 시 상세 모달에 표시할 대학.
-  const [selectedUniv, setSelectedUniv] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<TabId>('input');
+  const [selectedUnivs, setSelectedUnivs] = useState<string[]>([]);
+  const [detailUniv, setDetailUniv] = useState<string | null>(null);
+  const [deptMap, setDeptMap] = useState<Record<string, DeptRow[]>>({});
+  const [deptLoading, setDeptLoading] = useState(false);
 
   const { user } = useAuth();
 
@@ -42,7 +53,7 @@ export function ToolPage() {
     loadDataLayer().then(setData).catch((e) => setError(String(e)));
   }, []);
 
-  // 로그인 사용자는 저장된 프로필의 희망학과를 도구에 자동 연동(Phase B).
+  // 로그인 사용자: 저장된 희망학과/계열/동의 연동.
   useEffect(() => {
     if (!supabase || !user) {
       setConsented(null);
@@ -69,7 +80,6 @@ export function ToolPage() {
     };
   }, [user]);
 
-  // 희망학과 변경 시, 매핑된 계열을 계열 라디오 기본값으로 동기화(사용자 재선택 가능).
   const handleMajorChange = (v: string) => {
     setDesiredMajor(v);
     const lk = lookupMajor(v);
@@ -81,22 +91,24 @@ export function ToolPage() {
     const averages = computeComboAverages(subjects);
     const refAvg = averages['전과목'] ?? averages['국수영사과'];
     if (refAvg == null) return null;
-
     const conv = convert(data.conversion, refAvg);
     const triageResult = triage(conv.est9);
     const rawMatch = match(data.admissions, data.conversion, averages, { track });
-    // 희망학과 기반 우선정렬·배지 (행 제거 없음, 세션 한정·미저장)
     const matchOutput = annotateByMajor(rawMatch, lookupMajor(desiredMajor));
-    const strategies = buildSubjectStrategies(
-      matchOutput.matched,
-      data.subjectTrack,
-      averages,
-    );
+    const strategies = buildSubjectStrategies(matchOutput.matched, data.subjectTrack, averages);
     return { averages, conv, triageResult, matchOutput, strategies };
   }, [data, submitted, subjects, track, desiredMajor]);
 
-  // 로그인+동의 사용자의 조합 평균을 본인 프로필에 저장(관리자 상담/현황용).
-  // 원점수는 저장하지 않고 4개 조합 평균만 저장. 미동의 시 저장 생략.
+  // 결과가 생기면 학과 입결 DB를 lazy 로드(④ 표용).
+  useEffect(() => {
+    if (!result || deptLoading || Object.keys(deptMap).length > 0) return;
+    setDeptLoading(true);
+    loadDeptAdmissions()
+      .then(setDeptMap)
+      .finally(() => setDeptLoading(false));
+  }, [result]);
+
+  // 로그인+동의 사용자의 조합 평균 저장(관리자 상담/현황용).
   useEffect(() => {
     if (!supabase || !user || !consented || !result) return;
     const lk = lookupMajor(desiredMajor);
@@ -113,6 +125,9 @@ export function ToolPage() {
       .then(() => undefined);
   }, [result, user, consented, desiredMajor, track]);
 
+  const toggleUniv = (univ: string) =>
+    setSelectedUnivs((prev) => (prev.includes(univ) ? prev.filter((u) => u !== univ) : [...prev, univ]));
+
   if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
   if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
 
@@ -126,46 +141,94 @@ export function ToolPage() {
         </p>
       </header>
 
-      <GradeInputForm
-        track={track}
-        onTrackChange={setTrack}
-        onSubmit={(rows) => {
-          setSubjects(rows);
-          setSubmitted(true);
-        }}
-      />
+      <nav className="tabbar" role="tablist">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={activeTab === t.id}
+            className={`tab${activeTab === t.id ? ' active' : ''}`}
+            disabled={t.id !== 'input' && !result}
+            onClick={() => setActiveTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
 
-      <DesiredMajorInput value={desiredMajor} onChange={handleMajorChange} />
+      {activeTab === 'input' && (
+        <section>
+          <GradeInputForm
+            track={track}
+            onTrackChange={setTrack}
+            onSubmit={(rows) => {
+              setSubjects(rows);
+              setSubmitted(true);
+              setActiveTab('convert');
+            }}
+          />
+          <DesiredMajorInput value={desiredMajor} onChange={handleMajorChange} />
+        </section>
+      )}
 
-      {result && (
-        <section className="results">
+      {activeTab === 'convert' &&
+        (result ? (
           <ConversionPanel averages={result.averages} conv={result.conv} triage={result.triageResult} />
+        ) : (
+          <NeedGrades />
+        ))}
+
+      {activeTab === 'strategy' &&
+        (result ? (
           <StrategyCards
             cards={result.strategies}
-            subjectOnly={result.triageResult.subjectOnly}
-            onSelect={setSelectedUniv}
+            selectedUnivs={selectedUnivs}
+            onToggle={toggleUniv}
+            onDetail={setDetailUniv}
           />
-          <ResultList
-            output={result.matchOutput}
-            subjectOnly={result.triageResult.subjectOnly}
-            onSelect={setSelectedUniv}
+        ) : (
+          <NeedGrades />
+        ))}
+
+      {activeTab === 'apply' &&
+        (result ? (
+          <DeptResultTable
+            selectedUnivs={selectedUnivs}
+            desiredMajor={desiredMajor}
+            est9={result.conv.est9}
+            deptMap={deptMap}
+            loading={deptLoading}
           />
+        ) : (
+          <NeedGrades />
+        ))}
+
+      {result && (
+        <>
           {user && consented === false && (
             <p className="upload-info">
               마이페이지에서 개인정보 수집·이용에 동의하면, 입력한 성적 평균이 상담용으로 저장됩니다.
             </p>
           )}
           <p className="disclaimer">{DISCLAIMER}</p>
-        </section>
+        </>
       )}
 
-      {selectedUniv && (
+      {detailUniv && (
         <UniversityDetailModal
-          univName={selectedUniv}
+          univName={detailUniv}
           admissions={data.admissions}
-          onClose={() => setSelectedUniv(null)}
+          onClose={() => setDetailUniv(null)}
         />
       )}
     </main>
+  );
+}
+
+function NeedGrades() {
+  return (
+    <div className="panel">
+      <p className="muted">먼저 ‘① 성적 입력’ 탭에서 성적을 입력하고 분석해 주세요.</p>
+    </div>
   );
 }

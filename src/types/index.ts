@@ -117,6 +117,20 @@ export interface SubjectStrategyCard {
   advantage: string;
 }
 
+/** 학과 입결 한 행 (대학학과입결 DB, 연도별) — ④ 지원가능 표 */
+export interface DeptRow {
+  year: number;
+  /** 전형(정규화: 교과/종합/논술/지역전형) */
+  type: string;
+  detail: string; // 세부전형
+  dept: string; // 모집단위(학과)
+  quota: number | null; // 모집인원
+  comp: number | null; // 실경쟁률
+  addPass: number | null; // 추합
+  g50: number | null; // 등급50(9등급 50%컷)
+  g70: number | null; // 등급70(9등급 70%컷)
+}
+
 /** 전형 분기(triage) 결과 */
 export interface TriageResult {
   /** 교과전형 집중 권장 여부 (추정9등급 >= 임계값) */

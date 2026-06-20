@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react';
 import type { SubjectStrategyCard } from '../types';
 import { loadUniversitySummaries, pickSummary } from '../data/loadUniversityDetail';
 
-// ④ 교과전형 준비전략 카드 (분기 A)
-// 대학 상세를 2줄로 요약해 안내하고, 클릭하면 전체 상세 모달을 연다.
+// ③ 교과전형 준비전략 카드 — 대학을 선택(토글)하면 ④ 지원가능 표가 만들어진다.
+// 카드 클릭 = 선택, 카드 내 "상세" 버튼 = 대학 상세 모달.
 
 interface Props {
   cards: SubjectStrategyCard[];
-  subjectOnly: boolean;
-  onSelect?: (univName: string) => void;
+  selectedUnivs: string[];
+  onToggle: (univName: string) => void;
+  onDetail: (univName: string) => void;
 }
 
-export function StrategyCards({ cards, onSelect }: Props) {
+export function StrategyCards({ cards, selectedUnivs, onToggle, onDetail }: Props) {
   const [summaries, setSummaries] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -23,34 +24,37 @@ export function StrategyCards({ cards, onSelect }: Props) {
   }, []);
 
   if (cards.length === 0) return null;
+  const selected = new Set(selectedUnivs);
 
   return (
     <div className="panel">
-      <h2>④ 교과전형 준비전략</h2>
-      <p className="subtitle muted">카드를 클릭하면 해당 대학의 상세 정보를 볼 수 있습니다.</p>
+      <h2>교과전형 준비전략</h2>
+      <p className="subtitle muted">
+        지원할 대학을 선택하세요(여러 개 가능). 선택하면 <b>‘지원 가능 대학·학과’ 탭</b>에 학과별 입결 표가 만들어집니다.
+        {selectedUnivs.length > 0 && <> · 현재 <b>{selectedUnivs.length}개</b> 선택됨</>}
+      </p>
       <div className="card-grid">
         {cards.map((c, i) => {
-          const summary = pickSummary(summaries, c.match.row.univName);
+          const univ = c.match.row.univName;
+          const summary = pickSummary(summaries, univ);
+          const isSel = selected.has(univ);
           return (
             <article
               key={i}
-              className={`strategy-card${onSelect ? ' clickable' : ''}`}
-              role={onSelect ? 'button' : undefined}
-              tabIndex={onSelect ? 0 : undefined}
-              onClick={onSelect ? () => onSelect(c.match.row.univName) : undefined}
-              onKeyDown={
-                onSelect
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onSelect(c.match.row.univName);
-                      }
-                    }
-                  : undefined
-              }
+              className={`strategy-card clickable${isSel ? ' selected' : ''}`}
+              role="button"
+              aria-pressed={isSel}
+              tabIndex={0}
+              onClick={() => onToggle(univ)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggle(univ);
+                }
+              }}
             >
               <header>
-                <strong>{c.match.row.univName}</strong> · {c.match.row.unit}
+                <strong>{univ}</strong> · {c.match.row.unit}
                 <span className={`band-tag band-${c.match.band}`}>{c.match.band}</span>
               </header>
               {summary ? (
@@ -58,6 +62,19 @@ export function StrategyCards({ cards, onSelect }: Props) {
               ) : (
                 <p className="advantage">{c.advantage}</p>
               )}
+              <div className="card-actions">
+                <span className="select-hint">{isSel ? '✓ 선택됨 (클릭해 해제)' : '클릭하여 선택'}</span>
+                <button
+                  type="button"
+                  className="detail-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDetail(univ);
+                  }}
+                >
+                  상세
+                </button>
+              </div>
             </article>
           );
         })}
