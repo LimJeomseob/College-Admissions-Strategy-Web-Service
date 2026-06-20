@@ -102,6 +102,14 @@ button.primary:hover { background: var(--green-600); border-color: var(--green-6
 .detail-btn { font: inherit; font-size: .78rem; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface, #fff); cursor: pointer; }
 .detail-btn:hover { background: var(--bg-soft); }
 
+/* ④ 표 필터 + 대학별 그룹 헤더 */
+.table-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 10px; }
+.table-filters label { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.table-filters select { font: inherit; padding: 4px 8px; }
+.dept-group-header td { background: var(--bg-soft); font-size: .9rem; cursor: pointer; position: sticky; left: 0; border-top: 2px solid var(--line); }
+.dept-group-header:hover td { background: var(--line); }
+.dept-group-header .caret { display: inline-block; width: 1em; color: var(--muted); }
+
 /* 클릭 가능한 추천(카드/표 행) */
 .strategy-card.clickable, .result-table tr.clickable { cursor: pointer; }
 .strategy-card.clickable { transition: box-shadow .12s, border-color .12s, transform .12s; }
