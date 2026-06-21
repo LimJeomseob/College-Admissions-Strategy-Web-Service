@@ -5,23 +5,26 @@
 }
 .ui-hero-inner { max-width: 820px; margin: 0 auto; text-align: center; }
 .ui-hero-title {
-  font-size: var(--fs-2xl);
+  font-size: clamp(1.7rem, 6.5vw, var(--fs-2xl));
   line-height: 1.18;
   margin: 0 0 var(--space-5);
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink);
+  text-wrap: balance;
 }
 .ui-hero-subtitle {
-  font-size: var(--fs-lg);
+  font-size: clamp(1rem, 3.6vw, var(--fs-lg));
   color: var(--muted);
   max-width: 640px;
   margin: 0 auto var(--space-6);
-  line-height: 1.75;
+  line-height: 1.7;
+  text-wrap: pretty;
 }
 .ui-hero-actions { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }
 
 @media (max-width: 640px) {
   .ui-hero { padding: var(--space-7) var(--space-4) var(--space-6); }
-  .ui-hero-title { font-size: 2rem; }
+  .ui-hero-actions { width: 100%; flex-direction: column; align-items: stretch; }
+  .ui-hero-actions > * { width: 100%; text-align: center; }
 }
