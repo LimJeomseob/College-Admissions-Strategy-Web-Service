@@ -119,9 +119,19 @@ button.secondary:hover { background: var(--bg-soft); }
 
 .usage-layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
 .usage-accounts { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
-.usage-account { display: block; width: 100%; text-align: left; padding: 8px 10px; border: none; border-bottom: 1px solid var(--line); background: none; cursor: pointer; font: inherit; }
+.usage-account { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; border-bottom: 1px solid var(--line); background: none; cursor: pointer; font: inherit; }
 .usage-account:hover { background: var(--bg-soft); }
 .usage-account.active { background: var(--navy-500, #2f6f4f); color: #fff; }
+.usage-count-badge { flex-shrink: 0; min-width: 22px; text-align: center; font-size: .75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bg-soft); color: var(--navy-700, #2f6f4f); }
+.usage-account.active .usage-count-badge { background: rgba(255,255,255,.25); color: #fff; }
+
+.usage-summary { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.usage-summary-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.usage-stat { font-size: .82rem; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface, #fff); }
+.usage-stat b { color: var(--navy-700, #2f6f4f); }
+.usage-stat-total { background: var(--navy-700, #2f6f4f); color: #fff; border-color: var(--navy-700, #2f6f4f); }
+.usage-stat-total b { color: #fff; }
+.usage-stat-step { background: var(--bg-soft); }
 @media (max-width: 640px) { .usage-layout { grid-template-columns: 1fr; } }
 
 /* 4단계 종합전형 행 선택(→ 5단계) */
