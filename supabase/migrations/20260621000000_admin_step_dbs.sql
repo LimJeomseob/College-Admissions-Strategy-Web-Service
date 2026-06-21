@@ -87,3 +87,8 @@ create policy "usage insert self" on public.usage_events
 drop policy if exists "usage select admin or self" on public.usage_events;
 create policy "usage select admin or self" on public.usage_events
   for select using (public.is_admin() or auth.uid() = user_id);
+
+-- ── 역할별 테이블 권한(GRANT) ── RLS는 행 보안, GRANT는 테이블 접근 권한(둘 다 필요).
+grant select on public.conversion_db, public.strategy_db, public.dept_admissions_db to anon, authenticated;
+grant insert, update, delete on public.conversion_db, public.strategy_db, public.dept_admissions_db to authenticated;
+grant select, insert on public.usage_events to authenticated;
