@@ -124,6 +124,24 @@ button.secondary:hover { background: var(--bg-soft); }
 .usage-account.active { background: var(--navy-500, #2f6f4f); color: #fff; }
 @media (max-width: 640px) { .usage-layout { grid-template-columns: 1fr; } }
 
+/* 4단계 종합전형 행 선택(→ 5단계) */
+tr.jonghap-row { cursor: pointer; }
+tr.jonghap-row:hover { background: var(--bg-soft); }
+tr.jonghap-selected, tr.jonghap-selected:hover { background: var(--navy-50, #eaf3ee); box-shadow: inset 3px 0 0 var(--navy-700, #2f6f4f); }
+.jonghap-check { color: var(--navy-700, #2f6f4f); font-weight: 800; }
+
+/* 5단계 추천 카드 */
+.jonghap-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.jonghap-card { border: 1px solid var(--line); border-radius: var(--radius-md, 10px); padding: 12px 14px; background: var(--surface, #fff); }
+.jonghap-card header { margin-bottom: 8px; }
+.jonghap-kinds { display: flex; flex-direction: column; gap: 6px; }
+.jonghap-kind { display: flex; gap: 8px; align-items: flex-start; }
+.jonghap-kind-label { flex-shrink: 0; width: 38px; font-weight: 700; font-size: .82rem; color: var(--muted); padding-top: 3px; }
+.jonghap-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.subject-chip { font-size: .8rem; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-soft); }
+.subject-chip.chip-core { background: var(--navy-700, #2f6f4f); color: #fff; border-color: var(--navy-700, #2f6f4f); }
+.subject-chip.chip-rec { background: var(--navy-50, #eaf3ee); color: var(--navy-700, #2f6f4f); border-color: var(--navy-500, #5b8f73); }
+
 /* ④ 표 필터 + 대학별 그룹 헤더 */
 .table-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 10px; }
 .table-filters label { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted); }

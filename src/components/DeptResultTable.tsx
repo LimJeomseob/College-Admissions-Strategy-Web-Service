@@ -1,6 +1,10 @@
 import { Fragment, useMemo, useState } from 'react';
-import type { ConversionRow, DeptRow, RiskBand } from '../types';
+import type { ConversionRow, DeptRow, JonghapPick, RiskBand } from '../types';
 import { bandOf, deptMatches, deptsFor, nine2five } from '../data/loadDeptAdmissions';
+
+/** 종합전형 선택 키 (5단계 추천 연동) */
+export const pickKey = (p: { univName: string; type: string; detail: string; dept: string }) =>
+  `${p.univName}|${p.type}|${p.detail}|${p.dept}`;
 
 // 4단계 지원가능 대학·학과 표 — 선택 대학 + 희망학과 기반.
 // 학과별 연도 가로(피벗) 고정. 대학별 그룹 헤더(접기)+구분 요약 배지. 정렬 선택.
@@ -28,13 +32,27 @@ interface Props {
   deptMap: Record<string, DeptRow[]>;
   conversion: ConversionRow[];
   loading: boolean;
+  /** 5단계 연동: 선택된 종합전형 항목 키 집합 */
+  selectedJonghap: Set<string>;
+  onToggleJonghap: (pick: JonghapPick) => void;
 }
+
+const isJonghap = (type: string) => type.includes('종합');
 
 const BAND_CLASS: Record<RiskBand, string> = { 안정: 'band-stable', 적정: 'band-moderate', 소신: 'band-reach' };
 const BANDS: RiskBand[] = ['안정', '적정', '소신'];
 const BAND_ORDER: Record<string, number> = { 안정: 0, 적정: 1, 소신: 2, '—': 3 };
 
-export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, conversion, loading }: Props) {
+export function DeptResultTable({
+  selectedUnivs,
+  desiredMajor,
+  est9,
+  deptMap,
+  conversion,
+  loading,
+  selectedJonghap,
+  onToggleJonghap,
+}: Props) {
   const [bandFilter, setBandFilter] = useState<'all' | RiskBand>('all');
   const [sortBy, setSortBy] = useState<SortBy>('band');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -112,6 +130,7 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
         선택 {selectedUnivs.length}개 대학 · {shownCount}개 학과
         {desiredMajor ? ` · 희망학과 “${desiredMajor}”` : ' · 전체 학과'} · 셀: 위=50%컷 / 아래=70%컷, 5등급(9등급)
       </p>
+      <p className="subtitle muted">💡 <b>종합전형</b> 행을 클릭하면 강조 표시되고, <b>5단계 학생부종합전형 선택과목 추천</b>에 담깁니다.</p>
 
       <div className="table-filters">
         <label>정렬
@@ -163,9 +182,22 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
                       </td>
                     </tr>
                     {!isCol &&
-                      items.map((p, i) => (
-                        <tr key={i} className={p.band !== '—' ? BAND_CLASS[p.band] : undefined}>
-                          <td><span className="band-tag">{p.band}</span></td>
+                      items.map((p, i) => {
+                        const jong = isJonghap(p.type);
+                        const picked = jong && selectedJonghap.has(pickKey(p));
+                        const cls = [
+                          p.band !== '—' ? BAND_CLASS[p.band] : '',
+                          jong ? 'jonghap-row' : '',
+                          picked ? 'jonghap-selected' : '',
+                        ].filter(Boolean).join(' ') || undefined;
+                        return (
+                        <tr
+                          key={i}
+                          className={cls}
+                          onClick={jong ? () => onToggleJonghap({ univName: p.univName, type: p.type, detail: p.detail, dept: p.dept }) : undefined}
+                          title={jong ? '클릭하면 5단계 선택과목 추천에 담깁니다' : undefined}
+                        >
+                          <td><span className="band-tag">{p.band}</span>{picked && <span className="jonghap-check"> ✓</span>}</td>
                           <td>{p.univName}</td>
                           <td>{p.type.replace('전형', '')}</td>
                           <td>{p.detail || '—'}</td>
@@ -184,7 +216,8 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
                             );
                           })}
                         </tr>
-                      ))}
+                        );
+                      })}
                   </Fragment>
                 );
               })}

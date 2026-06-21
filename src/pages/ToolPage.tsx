@@ -23,19 +23,22 @@ import { supabase } from '../auth/supabaseClient';
 import { GradeInputForm } from '../components/GradeInputForm';
 import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { ConversionPanel } from '../components/ConversionPanel';
-import { DeptResultTable } from '../components/DeptResultTable';
+import { DeptResultTable, pickKey } from '../components/DeptResultTable';
 import { StrategyCards } from '../components/StrategyCards';
 import { UniversityDetailModal } from '../components/UniversityDetailModal';
 import { SelectedUnivsModal } from '../components/SelectedUnivsModal';
+import { JonghapRecommend } from '../components/JonghapRecommend';
+import { loadJonghapSubjects, type JonghapMap } from '../data/loadJonghapSubjects';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import type { DataLayer, DeptRow, SubjectInput, Track } from '../types';
+import type { DataLayer, DeptRow, JonghapPick, SubjectInput, Track } from '../types';
 
-type TabId = 'input' | 'convert' | 'strategy' | 'apply';
+type TabId = 'input' | 'convert' | 'strategy' | 'apply' | 'jonghap';
 const TABS: { id: TabId; label: string }[] = [
   { id: 'input', label: '1단계 성적 입력' },
   { id: 'convert', label: '2단계 성적 체계 환산' },
   { id: 'strategy', label: '3단계 교과전형 준비전략' },
   { id: 'apply', label: '4단계 지원 가능 대학·학과' },
+  { id: 'jonghap', label: '5단계 학생부종합전형 선택과목 추천' },
 ];
 
 // 전략 도구 — 단계별 탭 구성. ③에서 대학을 선택하면 ④ 표가 만들어진다.
@@ -55,6 +58,9 @@ export function ToolPage() {
   const [showSelectedList, setShowSelectedList] = useState(false);
   const [deptMap, setDeptMap] = useState<Record<string, DeptRow[]>>({});
   const [deptLoading, setDeptLoading] = useState(false);
+  const [jonghapPicks, setJonghapPicks] = useState<JonghapPick[]>([]);
+  const [jonghapMap, setJonghapMap] = useState<JonghapMap>({});
+  const [jonghapLoading, setJonghapLoading] = useState(false);
 
   const { user } = useAuth();
 
@@ -146,6 +152,15 @@ export function ToolPage() {
     }
   }, [result, selectedUnivs]);
 
+  // 5단계 선택과목 추천 DB lazy 로드(결과 생성 시 1회).
+  useEffect(() => {
+    if (!result || Object.keys(jonghapMap).length > 0) return;
+    setJonghapLoading(true);
+    loadJonghapSubjects()
+      .then(setJonghapMap)
+      .finally(() => setJonghapLoading(false));
+  }, [result]);
+
   // 사용이력(단계 완료) — 분석 결과/선택이 생기는 시점에 1회씩.
   useEffect(() => {
     if (result) logUsage('step_complete', 'convert', undefined, { once: true });
@@ -153,6 +168,9 @@ export function ToolPage() {
   useEffect(() => {
     if (selectedUnivs.length > 0) logUsage('step_complete', 'strategy', undefined, { once: true });
   }, [selectedUnivs]);
+  useEffect(() => {
+    if (jonghapPicks.length > 0) logUsage('step_complete', 'jonghap', undefined, { once: true });
+  }, [jonghapPicks]);
 
   // 로그인+동의 사용자의 조합 평균 저장(관리자 상담/현황용).
   useEffect(() => {
@@ -173,6 +191,12 @@ export function ToolPage() {
 
   const toggleUniv = (univ: string) =>
     setSelectedUnivs((prev) => (prev.includes(univ) ? prev.filter((u) => u !== univ) : [...prev, univ]));
+
+  const jonghapKeys = useMemo(() => new Set(jonghapPicks.map(pickKey)), [jonghapPicks]);
+  const toggleJonghap = (pick: JonghapPick) =>
+    setJonghapPicks((prev) =>
+      prev.some((p) => pickKey(p) === pickKey(pick)) ? prev.filter((p) => pickKey(p) !== pickKey(pick)) : [...prev, pick],
+    );
 
   if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
   if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
@@ -252,14 +276,32 @@ export function ToolPage() {
 
       {activeTab === 'apply' &&
         (result ? (
-          <DeptResultTable
-            selectedUnivs={selectedUnivs}
-            desiredMajor={desiredMajor}
-            est9={result.conv.est9}
-            deptMap={deptMap}
-            conversion={data.conversion}
-            loading={deptLoading}
-          />
+          <>
+            <DeptResultTable
+              selectedUnivs={selectedUnivs}
+              desiredMajor={desiredMajor}
+              est9={result.conv.est9}
+              deptMap={deptMap}
+              conversion={data.conversion}
+              loading={deptLoading}
+              selectedJonghap={jonghapKeys}
+              onToggleJonghap={toggleJonghap}
+            />
+            {jonghapPicks.length > 0 && (
+              <div className="step-nav">
+                <button type="button" className="primary" onClick={() => goTab('jonghap')}>
+                  다음 단계로 이동 (5단계) →
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <NeedGrades />
+        ))}
+
+      {activeTab === 'jonghap' &&
+        (result ? (
+          <JonghapRecommend picks={jonghapPicks} map={jonghapMap} loading={jonghapLoading} />
         ) : (
           <NeedGrades />
         ))}

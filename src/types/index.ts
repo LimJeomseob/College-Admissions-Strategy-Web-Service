@@ -131,6 +131,14 @@ export interface DeptRow {
   g70: number | null; // 등급70(9등급 70%컷)
 }
 
+/** 4단계에서 선택한 학생부종합전형 항목(→ 5단계 선택과목 추천) */
+export interface JonghapPick {
+  univName: string;
+  type: string;
+  detail: string;
+  dept: string;
+}
+
 /** 전형 분기(triage) 결과 */
 export interface TriageResult {
   /** 교과전형 집중 권장 여부 (추정9등급 >= 임계값) */
