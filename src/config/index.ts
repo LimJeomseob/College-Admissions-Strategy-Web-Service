@@ -14,6 +14,13 @@ export const SUBJECT_ONLY_THRESHOLD = 3.5;
 /** 환산표 커버리지 (5등급 평균) — 초과 시 외삽 경고 */
 export const CONVERSION_COVERAGE = { min: 1.0, max: 3.5 } as const;
 
+/**
+ * Supabase 단계별 DB를 앱 데이터로 사용할지 여부.
+ * true면 2/3/4단계 데이터를 Supabase에서 로드(없으면 정적 파일 폴백).
+ * Supabase 미설정 시에는 자동으로 정적 폴백된다.
+ */
+export const USE_SUPABASE_DATA = true;
+
 /** 3단계 매칭 여유분: 학생 환산등급 + 여유분 까지 지원가능권으로 포함 */
 export const MATCH_MARGIN = 0.5;
 

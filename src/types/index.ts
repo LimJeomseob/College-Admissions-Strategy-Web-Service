@@ -147,3 +147,61 @@ export interface DataLayer {
   universities: { univCode: string; univName: string; region: string }[];
   meta: { generatedAt: string; source: 'mock' | 'real' };
 }
+
+// ───────────────────────────────────────────────────────────
+// 관리자 단계별 DB(Supabase) 행 타입 — DB 관리 UI/로더 공통
+// ───────────────────────────────────────────────────────────
+
+/** 2단계 환산 DB 행 (5등급평균 → 모형별 추정) */
+export interface ConversionDbRow {
+  id?: number;
+  avg5: number;
+  busan: number | null;
+  daejin: number | null;
+  integrated: number | null; // 50:50 통합 (앱 기본 est9)
+  gg_jeon: string | null;
+  gg_guksuyeongsagwa: string | null;
+  gg_guksuyeonggwa: string | null;
+  gg_guksuyeongsa: string | null;
+}
+
+/** 3단계 교과전형 준비전략 DB 행 */
+export interface StrategyDbRow {
+  id?: number;
+  track: string | null; // 인문 / 자연
+  admission_type: string | null; // 교과전형 / 종합전형
+  avg5: string | null; // 범위 "2.9~3.0" 허용
+  est9: number | null;
+  rank300: string | null;
+  univ_name: string;
+  univ_canon: string;
+}
+
+/** 4단계 대학학과입결 DB 행 */
+export interface DeptAdmissionsDbRow {
+  id?: number;
+  univ_canon: string;
+  univ_raw: string | null;
+  year: number | null;
+  type: string | null;
+  detail: string | null;
+  dept: string | null;
+  quota: number | null;
+  comp: number | null;
+  add_pass: number | null;
+  g50: number | null;
+  g70: number | null;
+}
+
+/** 사용이력 이벤트 종류 */
+export type UsageEventType = 'step_enter' | 'step_complete' | 'analysis_run';
+
+/** 사용이력 한 행 */
+export interface UsageEvent {
+  id?: number;
+  user_id: string;
+  event_type: UsageEventType;
+  step: string | null;
+  meta: Record<string, unknown> | null;
+  created_at: string;
+}

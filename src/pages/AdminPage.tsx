@@ -2,7 +2,18 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { supabase } from '../auth/supabaseClient';
 import { Button } from '../components/ui/Button';
+import { AdminDbManager } from '../components/admin/AdminDbManager';
+import { AdminUsageHistory } from '../components/admin/AdminUsageHistory';
+import { STEP_DB_CONFIGS } from '../config/stepDbConfigs';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+
+type AdminTab = 'admins' | 'students' | 'db' | 'usage';
+const ADMIN_TABS: { id: AdminTab; label: string }[] = [
+  { id: 'admins', label: '관리자 관리' },
+  { id: 'students', label: '성적 입력 현황' },
+  { id: 'db', label: '단계별 DB 관리' },
+  { id: 'usage', label: '사용 이력' },
+];
 
 // /admin — 관리자 목록 조회·추가·삭제 (RequireAdmin 가드 + RLS 이중 보호).
 
@@ -39,6 +50,7 @@ export function AdminPage() {
   const [busy, setBusy] = useState(false);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(true);
+  const [tab, setTab] = useState<AdminTab>('admins');
 
   const load = async () => {
     if (!supabase) return;
@@ -99,7 +111,38 @@ export function AdminPage() {
 
   return (
     <main className="container auth-page">
-      <h1>관리자 관리</h1>
+      <h1>관리자</h1>
+
+      <nav className="tabbar" role="tablist">
+        {ADMIN_TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`tab${tab === t.id ? ' active' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
+      {tab === 'db' && (
+        <div className="admin-section">
+          {STEP_DB_CONFIGS.map((c) => (
+            <AdminDbManager key={c.id} config={c} />
+          ))}
+        </div>
+      )}
+
+      {tab === 'usage' && (
+        <div className="admin-section">
+          <AdminUsageHistory />
+        </div>
+      )}
+
+      {tab === 'admins' && (
+        <div className="admin-section">
       <p className="subtitle muted">관리자 계정을 추가·삭제합니다. 등록된 이메일로 로그인하면 관리자 권한이 부여됩니다.</p>
 
       <form className="admin-add" onSubmit={add}>
@@ -138,8 +181,11 @@ export function AdminPage() {
           </tbody>
         </table>
       )}
+        </div>
+      )}
 
-      <h2 style={{ marginTop: '2.5rem' }}>성적 입력 현황</h2>
+      {tab === 'students' && (
+        <div className="admin-section">
       <p className="subtitle muted">
         동의한 로그인 학생이 전략 도구에서 산출한 과목 평균 등급입니다. <small>※ 한국사는 사회 교과에 포함됩니다.</small>
       </p>
@@ -184,6 +230,8 @@ export function AdminPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
         </div>
       )}
     </main>

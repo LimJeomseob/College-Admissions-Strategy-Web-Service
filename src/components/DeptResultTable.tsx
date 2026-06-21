@@ -39,7 +39,7 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
   const [sortBy, setSortBy] = useState<SortBy>('band');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  const { allRows, emptyUnivs, yearsAsc } = useMemo(() => {
+  const { allRows, emptyUnivs, yearsDesc } = useMemo(() => {
     const allRows: Row[] = [];
     const emptyUnivs: string[] = [];
     for (const univ of selectedUnivs) {
@@ -47,8 +47,8 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
       if (depts.length === 0) emptyUnivs.push(univ);
       for (const d of depts) allRows.push({ ...d, univName: univ, band: bandOf(est9, d.g50, d.g70) });
     }
-    const yearsAsc = [...new Set(allRows.map((r) => r.year))].sort((a, b) => a - b);
-    return { allRows, emptyUnivs, yearsAsc };
+    const yearsDesc = [...new Set(allRows.map((r) => r.year))].sort((a, b) => b - a);
+    return { allRows, emptyUnivs, yearsDesc };
   }, [selectedUnivs, desiredMajor, est9, deptMap]);
 
   const cmpPivot = (a: Pivot, b: Pivot) =>
@@ -85,7 +85,7 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
   }, [allRows, bandFilter, sortBy]);
 
   const shownCount = groups.reduce((s, [, items]) => s + items.length, 0);
-  const colCount = 5 + yearsAsc.length;
+  const colCount = 5 + yearsDesc.length;
   const toggle = (u: string) =>
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -144,7 +144,7 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
             <thead>
               <tr>
                 <th>구분</th><th>대학</th><th>전형</th><th>세부전형</th><th>모집단위</th>
-                {yearsAsc.map((y) => <th key={y}>{y}</th>)}
+                {yearsDesc.map((y) => <th key={y}>{y}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -170,7 +170,7 @@ export function DeptResultTable({ selectedUnivs, desiredMajor, est9, deptMap, co
                           <td>{p.type.replace('전형', '')}</td>
                           <td>{p.detail || '—'}</td>
                           <td>{p.dept}</td>
-                          {yearsAsc.map((y) => {
+                          {yearsDesc.map((y) => {
                             const r = p.byYear.get(y);
                             return (
                               <td key={y}>
