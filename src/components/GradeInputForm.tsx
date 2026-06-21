@@ -48,44 +48,49 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
   const update = (i: number, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
-  const handleFile = async (file: File | undefined) => {
-    if (!file) return;
+  // 여러 파일을 한 번에 업로드 — 이미지(OCR)·csv/txt/xlsx를 각각 파싱해 과목을 모두 합산.
+  const handleFiles = async (files: File[]) => {
+    if (files.length === 0) return;
     setUploadError(null);
     setUploadWarnings([]);
     setUploadInfo(null);
+    setOcrBusy(true);
 
-    // 이미지 캡쳐 → OCR(로그인 필요). 그 외(csv·txt·xlsx) → 기존 파서.
-    if (isImageFile(file)) {
-      if (!user) {
-        setUploadError('성적표 이미지 인식은 로그인 후 이용할 수 있습니다.');
-        return;
-      }
-      setOcrBusy(true);
+    const acc: SubjectInput[] = [];
+    const warns: string[] = [];
+    const errs: string[] = [];
+    let detectedTrack: Track | undefined;
+
+    for (const file of files) {
       try {
-        const parsed = await ocrGradeImage(file);
-        setRows(parsed.rows.map(toRow));
-        setUploadInfo(
-          `이미지에서 ${parsed.rows.length}개 과목을 인식했습니다. 제출 전 반드시 확인·수정해 주세요.`,
-        );
-        if (parsed.track) onTrackChange(parsed.track);
+        if (isImageFile(file)) {
+          if (!user) {
+            errs.push(`${file.name}: 이미지 인식은 로그인 후 가능`);
+            continue;
+          }
+          const parsed = await ocrGradeImage(file);
+          acc.push(...parsed.rows);
+          if (parsed.track) detectedTrack = parsed.track;
+        } else {
+          const parsed = await parseGradeFile(file);
+          acc.push(...parsed.rows);
+          warns.push(...parsed.warnings.map((w) => `${file.name} ${w}`));
+          if (parsed.track) detectedTrack = parsed.track;
+        }
       } catch (e) {
-        setUploadError(e instanceof Error ? e.message : '이미지 인식에 실패했습니다.');
-      } finally {
-        setOcrBusy(false);
+        const msg = e instanceof ParseError ? e.message : e instanceof Error ? e.message : '읽기 오류';
+        errs.push(`${file.name}: ${msg}`);
       }
-      return;
     }
 
-    try {
-      const parsed = await parseGradeFile(file);
-      setRows(parsed.rows.map(toRow)); // 제출 전 편집 가능하게 프리필
-      setUploadWarnings(parsed.warnings);
-      setUploadInfo(`${parsed.rows.length}개 과목을 불러왔습니다. 제출 전 확인·수정할 수 있습니다.`);
-      if (parsed.track) onTrackChange(parsed.track);
-    } catch (e) {
-      const msg = e instanceof ParseError ? e.message : '파일을 읽는 중 오류가 발생했습니다.';
-      setUploadError(msg);
+    setOcrBusy(false);
+    if (acc.length > 0) {
+      setRows(acc.map(toRow)); // 합산 결과로 표 구성(제출 전 편집 가능)
+      setUploadInfo(`${files.length}개 파일에서 ${acc.length}개 과목을 불러왔습니다. 제출 전 확인·수정해 주세요.`);
+      if (detectedTrack) onTrackChange(detectedTrack);
     }
+    setUploadWarnings(warns);
+    if (errs.length > 0) setUploadError(errs.join(' / '));
   };
 
   const submit = () => {
@@ -102,23 +107,24 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
 
   return (
     <section className="input-form">
-      <h2>① 성적 입력</h2>
+      <h2>1단계 성적 입력</h2>
 
       <div className="upload-area">
         <label className="upload-label">
-          성적표 업로드 (이미지 캡쳐·csv·txt·xlsx)
+          성적표 업로드 (이미지 캡쳐·csv·txt·xlsx, 여러 개 가능)
           <input
             type="file"
             accept="image/*,.csv,.txt,.xlsx,.xls"
+            multiple
             disabled={ocrBusy}
             onChange={(e) => {
-              void handleFile(e.target.files?.[0]);
+              void handleFiles(Array.from(e.target.files ?? []));
               e.target.value = ''; // 같은 파일 재선택 허용
             }}
           />
         </label>
         <p className="upload-hint muted">
-          성적표 화면을 캡쳐한 이미지를 올리면 자동으로 표를 채워줍니다{user ? '' : ' (로그인 필요)'}.
+          여러 파일을 한 번에 올리면 과목이 모두 합쳐집니다. 캡쳐 이미지도 자동 인식{user ? '' : ' (로그인 필요)'}.
         </p>
       </div>
       {ocrBusy && <p className="upload-info">이미지를 인식하는 중입니다… 잠시만 기다려 주세요.</p>}
@@ -146,7 +152,7 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
             <th>교과군</th>
             <th>과목명</th>
             <th>5등급</th>
-            <th>단위수</th>
+            <th>학점수</th>
             <th></th>
           </tr>
         </thead>

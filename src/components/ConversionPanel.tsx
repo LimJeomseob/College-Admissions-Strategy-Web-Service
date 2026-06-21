@@ -11,7 +11,7 @@ interface Props {
 export function ConversionPanel({ averages, conv, triage }: Props) {
   return (
     <div className="panel">
-      <h2>② 성적 체계 환산</h2>
+      <h2>2단계 성적 체계 환산</h2>
       <div className="avg-grid">
         {(Object.keys(averages) as (keyof ComboAverages)[]).map((k) => (
           <div key={k} className="avg-cell">

@@ -19,7 +19,6 @@ export function Navbar() {
           <nav className="navbar-nav">
             <NavLink to="/" end className={navClass}>홈</NavLink>
             <NavLink to="/tool" className={navClass}>전략 도구</NavLink>
-            {configured && user && <NavLink to="/mypage" className={navClass}>마이페이지</NavLink>}
           </nav>
         </div>
 

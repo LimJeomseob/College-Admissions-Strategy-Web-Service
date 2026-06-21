@@ -24,10 +24,10 @@ import type { DataLayer, DeptRow, SubjectInput, Track } from '../types';
 
 type TabId = 'input' | 'convert' | 'strategy' | 'apply';
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'input', label: '① 성적 입력' },
-  { id: 'convert', label: '② 성적 체계 환산' },
-  { id: 'strategy', label: '③ 교과전형 준비전략' },
-  { id: 'apply', label: '④ 지원 가능 대학·학과' },
+  { id: 'input', label: '1단계 성적 입력' },
+  { id: 'convert', label: '2단계 성적 체계 환산' },
+  { id: 'strategy', label: '3단계 교과전형 준비전략' },
+  { id: 'apply', label: '4단계 지원 가능 대학·학과' },
 ];
 
 // 전략 도구 — 단계별 탭 구성. ③에서 대학을 선택하면 ④ 표가 만들어진다.
@@ -180,12 +180,19 @@ export function ToolPage() {
 
       {activeTab === 'strategy' &&
         (result ? (
-          <StrategyCards
-            cards={result.strategies}
-            selectedUnivs={selectedUnivs}
-            onToggle={toggleUniv}
-            onDetail={setDetailUniv}
-          />
+          <>
+            <StrategyCards
+              cards={result.strategies}
+              selectedUnivs={selectedUnivs}
+              onToggle={toggleUniv}
+              onDetail={setDetailUniv}
+            />
+            <div className="step-nav">
+              <button type="button" className="primary" onClick={() => setActiveTab('apply')}>
+                다음 단계로 이동 (4단계) →
+              </button>
+            </div>
+          </>
         ) : (
           <NeedGrades />
         ))}
@@ -220,6 +227,10 @@ export function ToolPage() {
           univName={detailUniv}
           admissions={data.admissions}
           onClose={() => setDetailUniv(null)}
+          onNext={() => {
+            setDetailUniv(null);
+            setActiveTab('apply');
+          }}
         />
       )}
     </main>

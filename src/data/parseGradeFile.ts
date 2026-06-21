@@ -34,7 +34,7 @@ function canonField(header: string): CanonField | null {
   if (['과목구분', '교과군', '구분', 'category'].includes(k)) return 'category';
   if (['과목명', '과목', 'name', 'subject'].includes(k)) return 'name';
   if (['등급', '5등급', 'grade', 'grade5'].includes(k)) return 'grade5';
-  if (['단위수', '이수단위', '단위', 'credits', 'credit', 'unit'].includes(k)) return 'credits';
+  if (['학점수', '단위수', '이수단위', '단위', '학점', 'credits', 'credit', 'unit'].includes(k)) return 'credits';
   if (['계열', 'track'].includes(k)) return 'track';
   return null;
 }
@@ -177,7 +177,7 @@ function buildResult(matrix: string[][]): ParsedGradeFile {
     if (!Number.isFinite(credits)) {
       credits = 1;
       if (cols.credits != null) {
-        warnings.push(`${i + 1}행: 단위수 값을 읽을 수 없어 1로 보정했습니다.`);
+        warnings.push(`${i + 1}행: 학점수 값을 읽을 수 없어 1로 보정했습니다.`);
       }
     }
 

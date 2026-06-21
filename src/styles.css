@@ -128,6 +128,8 @@ button.primary:hover { background: var(--green-600); border-color: var(--green-6
 .modal-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
 .modal-close:hover { background: var(--bg-soft); }
 .modal-body { padding: 16px 18px; overflow-y: auto; }
+.modal-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
+.step-nav { display: flex; justify-content: flex-end; margin: 8px 0 16px; }
 .modal-body h4 { margin: 16px 0 8px; font-size: .95rem; }
 .modal-body section:first-child h4 { margin-top: 0; }
 .univ-detail-html { font-size: .85rem; overflow-x: auto; }

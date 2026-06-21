@@ -15,7 +15,6 @@ export function triage(est9: number): TriageResult {
     message: subjectOnly
       ? `추정 9등급 ${est9.toFixed(2)}등급대에서는 학생부종합전형 경쟁력이 낮습니다. ` +
         `교과전형에 집중하여 반영방법이 유리한 대학을 공략하는 전략을 권장합니다.`
-      : `추정 9등급 ${est9.toFixed(2)}등급대는 교과·종합 양 전형 모두 검토 가능합니다. ` +
-        `(종합전형 상세 전략은 다음 단계에서 제공 예정)`,
+      : `추정 9등급 ${est9.toFixed(2)}등급대는 교과·종합 양 전형 모두 검토 가능합니다.`,
   };
 }

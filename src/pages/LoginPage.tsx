@@ -15,7 +15,7 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false);
   useDocumentTitle(mode === 'login' ? '로그인' : '회원가입');
 
-  if (user) return <Navigate to="/mypage" replace />;
+  if (user) return <Navigate to="/tool" replace />;
 
   if (!configured) {
     return (

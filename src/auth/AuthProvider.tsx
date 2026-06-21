@@ -29,9 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
-      // OAuth/이메일 확인 복귀 후 세션이 잡히면 마이페이지로 이동(해시 없는 홈에 떨어지므로).
+      // OAuth/이메일 확인 복귀 후 세션이 잡히면 전략 도구로 이동(해시 없는 홈에 떨어지므로).
       if (data.session && hadOAuthRedirect) {
-        window.location.hash = '#/mypage';
+        window.location.hash = '#/tool';
       }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {

@@ -9,11 +9,13 @@ interface Props {
   univName: string;
   admissions: AdmissionRow[];
   onClose: () => void;
+  /** 있으면 모달 하단에 "다음 단계로 이동" 버튼 표시 */
+  onNext?: () => void;
 }
 
 const TYPE_LABEL = (t: string) => t.replace('학생부', '');
 
-export function UniversityDetailModal({ univName, admissions, onClose }: Props) {
+export function UniversityDetailModal({ univName, admissions, onClose, onNext }: Props) {
   const [html, setHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -93,6 +95,12 @@ export function UniversityDetailModal({ univName, admissions, onClose }: Props) 
             )}
           </section>
         </div>
+
+        {onNext && (
+          <footer className="modal-foot">
+            <button type="button" className="primary" onClick={onNext}>다음 단계로 이동 (4단계) →</button>
+          </footer>
+        )}
       </div>
     </div>
   );
