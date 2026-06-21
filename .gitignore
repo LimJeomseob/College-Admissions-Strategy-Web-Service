@@ -13,6 +13,8 @@ data/raw/*
 # 입결 원본 엑셀(대용량). 변환 결과인 deptAdmissions.csv 만 커밋.
 scripts/etl/data/*.xlsx
 scripts/etl/data/*.xls
+# 종합전형 선택과목 원본(대용량). 산출물 public/jonghapSubjects.json 만 커밋.
+scripts/etl/data/jonghapSubjects.json
 
 # 단계별 DB 시드 원본(대용량/원본). Supabase에 적재해 사용.
 scripts/seed/data/
