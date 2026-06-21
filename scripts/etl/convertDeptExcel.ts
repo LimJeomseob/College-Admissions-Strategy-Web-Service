@@ -54,7 +54,7 @@ function normType(raw: string): string {
   if (/지역/.test(t)) return '지역전형';
   if (/실기|실적/.test(t)) return '실기전형';
   if (/특기/.test(t)) return '특기자전형';
-  return String(raw).trim();
+  return ''; // 분류 불가(예: '합전형') → 제외 대상
 }
 
 // 컬럼 별칭 — 실제 엑셀 헤더에 맞게 보강.
@@ -166,7 +166,7 @@ function build(rows: Rec[]): DeptCsvRow[] {
     // 와이드 레이아웃: 한 행에 여러 연도가 가로로. 연도별로 펼친다.
     for (const row of rows) {
       const b = base(row);
-      if (!b.univCanon || !b.dept) continue;
+      if (!b.univCanon || !b.dept || !b.type) continue; // 분류 불가 전형 제외
       for (const year of wideYears) {
         const g50 = numCell(wideCell(row, year, ['50%컷', '50%', '입결_등급', '입결등급', '등급']));
         const g70 = numCell(wideCell(row, year, ['70%컷', '70%', '등급70']));
@@ -181,7 +181,7 @@ function build(rows: Rec[]): DeptCsvRow[] {
     for (const row of rows) {
       const b = base(row);
       const year = Number(numCell(pick(row, ALIASES.year)));
-      if (!b.univCanon || !b.dept || !Number.isFinite(year) || year === 0) continue;
+      if (!b.univCanon || !b.dept || !b.type || !Number.isFinite(year) || year === 0) continue; // 분류 불가 전형 제외
       out.push({
         ...b,
         year,
