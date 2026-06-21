@@ -13,7 +13,8 @@
     "etl": "tsx scripts/etl/index.ts",
     "etl:mock": "tsx scripts/etl/generateMock.ts",
     "etl:2028": "tsx scripts/etl/build2028.ts",
-    "etl:dept": "tsx scripts/etl/convertDeptExcel.ts"
+    "etl:dept": "tsx scripts/etl/convertDeptExcel.ts",
+    "seed:stepdbs": "tsx scripts/seed/seedStepDbs.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

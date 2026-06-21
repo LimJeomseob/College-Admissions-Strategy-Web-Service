@@ -14,5 +14,8 @@ data/raw/*
 scripts/etl/data/*.xlsx
 scripts/etl/data/*.xls
 
+# 단계별 DB 시드 원본(대용량/원본). Supabase에 적재해 사용.
+scripts/seed/data/
+
 # ETL 산출물(생성물). 로컬은 `npm run etl(:mock)`, CI는 빌드 단계에서 생성.
 public/data/
