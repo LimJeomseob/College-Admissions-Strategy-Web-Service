@@ -10,6 +10,9 @@ dist-ssr
 # 원본 DB(개인 데이터/대용량)는 저장소에 커밋하지 않음.
 data/raw/*
 !data/raw/.gitkeep
+# 입결 원본 엑셀(대용량). 변환 결과인 deptAdmissions.csv 만 커밋.
+scripts/etl/data/*.xlsx
+scripts/etl/data/*.xls
 
 # ETL 산출물(생성물). 로컬은 `npm run etl(:mock)`, CI는 빌드 단계에서 생성.
 public/data/

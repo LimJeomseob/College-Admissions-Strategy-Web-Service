@@ -40,18 +40,22 @@ interface DeptCsvRow {
 }
 const HEADER = 'univCanon,univRaw,year,type,detail,dept,quota,comp,addPass,g50,g70';
 
-// 전형유형 정규화(기존 DB 라벨과 정렬): 학생부교과→교과전형 등.
-const TYPE_MAP: Record<string, string> = {
-  학생부교과: '교과전형',
-  교과: '교과전형',
-  학생부종합: '종합전형',
-  종합: '종합전형',
-  논술: '논술전형',
-  논술위주: '논술전형',
-  실기: '실기전형',
-  실기실적: '실기전형',
-};
-const normType = (t: string) => TYPE_MAP[t?.replace(/\s+/g, '')] ?? (t || '');
+// 전형유형 정규화 → 기존 DB의 표준 라벨(교과전형/종합전형/논술전형/지역전형/실기전형/특기자전형).
+// 원본 엑셀은 '학생부교과'·'학생부종합' 등 변형과 '교괴/교고/정힙전형' 같은 오타가 섞여 있어,
+// 오타 교정 후 부분일치로 카테고리를 묶는다. 분류 불가 값은 원본 유지(손실 방지).
+function normType(raw: string): string {
+  let t = String(raw ?? '').replace(/\s+/g, '');
+  if (!t) return '';
+  t = t.replace(/교괴|교고/g, '교과').replace(/정힙/g, '종합'); // 흔한 오타 교정
+  t = t.replace(/^학생부/, ''); // 학생부교과/학생부종합 접두 제거
+  if (/교과/.test(t)) return '교과전형';
+  if (/종합/.test(t)) return '종합전형';
+  if (/논술/.test(t)) return '논술전형';
+  if (/지역/.test(t)) return '지역전형';
+  if (/실기|실적/.test(t)) return '실기전형';
+  if (/특기/.test(t)) return '특기자전형';
+  return String(raw).trim();
+}
 
 // 컬럼 별칭 — 실제 엑셀 헤더에 맞게 보강.
 const ALIASES = {
@@ -72,7 +76,10 @@ const numCell = (s: string | undefined): string => {
   const m = String(s).replace(/[,%]/g, '').match(/-?\d+(\.\d+)?/);
   return m ? m[0] : '';
 };
-const csvEscape = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
+// 텍스트 필드 정리 — build2028.ts 의 readCsv 가 따옴표 비인식(naive split)이므로,
+// 기존 DB와 동일하게 쉼표/개행 없는 값으로 정규화한다(쉼표·개행→공백).
+const textCell = (s: string | undefined): string =>
+  String(s ?? '').replace(/[\r\n,]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 function pick(row: Rec, names: readonly string[]): string {
   for (const n of names) {
@@ -144,13 +151,13 @@ function build(rows: Rec[]): DeptCsvRow[] {
   const out: DeptCsvRow[] = [];
 
   const base = (row: Rec) => {
-    const univRaw = pick(row, ALIASES.univ);
+    const univRaw = textCell(pick(row, ALIASES.univ));
     return {
       univRaw,
       univCanon: canonUniv(univRaw),
       type: normType(pick(row, ALIASES.type)),
-      detail: pick(row, ALIASES.detail),
-      dept: pick(row, ALIASES.dept),
+      detail: textCell(pick(row, ALIASES.detail)),
+      dept: textCell(pick(row, ALIASES.dept)),
       quota: numCell(pick(row, ALIASES.quota)),
     };
   };
@@ -206,10 +213,9 @@ function keepExistingYear(): DeptCsvRow[] {
 }
 
 function toCsv(rows: DeptCsvRow[]): string {
+  // 모든 텍스트 필드는 textCell 로 쉼표/개행이 제거돼 있으므로 단순 join(기존 DB 포맷과 동일).
   const body = rows.map((r) =>
-    [r.univCanon, r.univRaw, r.year, r.type, r.detail, r.dept, r.quota, r.comp, r.addPass, r.g50, r.g70]
-      .map((v) => csvEscape(String(v ?? '')))
-      .join(','),
+    [r.univCanon, r.univRaw, r.year, r.type, r.detail, r.dept, r.quota, r.comp, r.addPass, r.g50, r.g70].join(','),
   );
   return [HEADER, ...body].join('\n') + '\n';
 }
