@@ -57,6 +57,8 @@ input, select { padding: 6px 10px; border: 1px solid var(--line); border-radius:
 button { cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 6px 12px; font: inherit; }
 button.primary { background: var(--green-500); color: #fff; border-color: var(--green-500); border-radius: var(--radius-pill); font-weight: 700; padding: 8px 18px; }
 button.primary:hover { background: var(--green-600); border-color: var(--green-600); }
+button.secondary { background: var(--surface, #fff); color: var(--green-600); border-color: var(--green-500); border-radius: var(--radius-pill); font-weight: 700; padding: 8px 18px; }
+button.secondary:hover { background: var(--bg-soft); }
 
 .avg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
 .avg-cell { background: var(--bg-soft); border-radius: 8px; padding: 8px; text-align: center; }
@@ -129,7 +131,13 @@ button.primary:hover { background: var(--green-600); border-color: var(--green-6
 .modal-close:hover { background: var(--bg-soft); }
 .modal-body { padding: 16px 18px; overflow-y: auto; }
 .modal-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
-.step-nav { display: flex; justify-content: flex-end; margin: 8px 0 16px; }
+.step-nav { display: flex; justify-content: flex-end; gap: 8px; margin: 8px 0 16px; }
+
+.selected-univ-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.selected-univ-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-soft); }
+.selected-univ-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.selected-univ-info .muted { font-size: .8rem; }
+.selected-univ-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .modal-body h4 { margin: 16px 0 8px; font-size: .95rem; }
 .modal-body section:first-child h4 { margin-top: 0; }
 .univ-detail-html { font-size: .85rem; overflow-x: auto; }

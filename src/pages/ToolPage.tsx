@@ -19,6 +19,7 @@ import { ConversionPanel } from '../components/ConversionPanel';
 import { DeptResultTable } from '../components/DeptResultTable';
 import { StrategyCards } from '../components/StrategyCards';
 import { UniversityDetailModal } from '../components/UniversityDetailModal';
+import { SelectedUnivsModal } from '../components/SelectedUnivsModal';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import type { DataLayer, DeptRow, SubjectInput, Track } from '../types';
 
@@ -44,6 +45,7 @@ export function ToolPage() {
   const [activeTab, setActiveTab] = useState<TabId>('input');
   const [selectedUnivs, setSelectedUnivs] = useState<string[]>([]);
   const [detailUniv, setDetailUniv] = useState<string | null>(null);
+  const [showSelectedList, setShowSelectedList] = useState(false);
   const [deptMap, setDeptMap] = useState<Record<string, DeptRow[]>>({});
   const [deptLoading, setDeptLoading] = useState(false);
 
@@ -188,6 +190,11 @@ export function ToolPage() {
               onDetail={setDetailUniv}
             />
             <div className="step-nav">
+              {selectedUnivs.length > 0 && (
+                <button type="button" className="secondary" onClick={() => setShowSelectedList(true)}>
+                  선택한 대학 {selectedUnivs.length}개 보기
+                </button>
+              )}
               <button type="button" className="primary" onClick={() => setActiveTab('apply')}>
                 다음 단계로 이동 (4단계) →
               </button>
@@ -222,15 +229,21 @@ export function ToolPage() {
         </>
       )}
 
+      {showSelectedList && (
+        <SelectedUnivsModal
+          selectedUnivs={selectedUnivs}
+          admissions={data.admissions}
+          onClose={() => setShowSelectedList(false)}
+          onDetail={setDetailUniv}
+          onToggle={toggleUniv}
+        />
+      )}
+
       {detailUniv && (
         <UniversityDetailModal
           univName={detailUniv}
           admissions={data.admissions}
           onClose={() => setDetailUniv(null)}
-          onNext={() => {
-            setDetailUniv(null);
-            setActiveTab('apply');
-          }}
         />
       )}
     </main>
