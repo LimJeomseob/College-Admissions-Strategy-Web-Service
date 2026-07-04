@@ -1,6 +1,6 @@
 import type { ComboAverages, ConversionResult, TriageResult } from '../types';
 
-// ② 환산 결과 + 4종 조합 평균 표시 + 분기 안내
+// ② 5등급 → 9등급 환산 결과. 현재 성적(조합 평균) + 환산 등급(범위) + 분기 안내.
 
 interface Props {
   averages: ComboAverages;
@@ -9,9 +9,18 @@ interface Props {
 }
 
 export function ConversionPanel({ averages, conv, triage }: Props) {
+  const lo = conv.refRange ? conv.refRange.min : conv.est9;
+  const hi = conv.refRange ? conv.refRange.max : conv.est9;
+
   return (
     <div className="panel">
-      <h2>2단계 성적 체계 환산</h2>
+      <h2>5등급 → 9등급</h2>
+      <p className="convert-intro">
+        <b>5등급 성적은 입시 결과가 아직 존재하지 않기 때문에, 성적을 기반으로 변환합니다.</b>
+      </p>
+      <p className="convert-sub muted">성적 입력 한 번으로 수시 지원이 가능한 모든 대학을 찾아냅니다.</p>
+
+      <p className="convert-caption">5등급 체계에서 계산한 현재 성적</p>
       <div className="avg-grid">
         {(Object.keys(averages) as (keyof ComboAverages)[]).map((k) => (
           <div key={k} className="avg-cell">
@@ -21,13 +30,12 @@ export function ConversionPanel({ averages, conv, triage }: Props) {
         ))}
       </div>
 
-      <p className="convert-line">
-        전과목 5등급 평균 <b>{conv.avg5.toFixed(2)}</b> → 9등급 추정{' '}
-        <b className="est9">{conv.est9.toFixed(2)}</b>
-        {conv.refRange && (
-          <span className="ref-range"> (참고 범위 {conv.refRange.min.toFixed(2)}~{conv.refRange.max.toFixed(2)})</span>
-        )}
-      </p>
+      <div className="convert-result">
+        <span className="convert-result-num">{conv.est9.toFixed(2)}</span>
+        <p className="convert-result-line">
+          9등급 체제에서는 약 <b>{lo.toFixed(2)}</b>에서 <b>{hi.toFixed(2)}</b>등급에 해당합니다.
+        </p>
+      </div>
 
       {conv.extrapolated && (
         <p className="warn">

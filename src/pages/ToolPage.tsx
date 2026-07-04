@@ -36,8 +36,8 @@ type TabId = 'input' | 'convert' | 'strategy' | 'apply' | 'jonghap';
 const TABS: { id: TabId; label: string }[] = [
   { id: 'input', label: '1단계 성적 입력' },
   { id: 'convert', label: '2단계 성적 체계 환산' },
-  { id: 'strategy', label: '3단계 교과전형 준비전략' },
-  { id: 'apply', label: '4단계 지원 가능 대학·학과' },
+  { id: 'strategy', label: '3단계 교과 전형 지원 가능 대학' },
+  { id: 'apply', label: '4단계 수시 지원 교과·종합 추천 대학' },
   { id: 'jonghap', label: '5단계 학생부종합전형 선택과목 추천' },
 ];
 

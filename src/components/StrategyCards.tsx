@@ -28,9 +28,9 @@ export function StrategyCards({ cards, selectedUnivs, onToggle, onDetail }: Prop
 
   return (
     <div className="panel">
-      <h2>3단계 교과전형 준비전략</h2>
+      <h2>3단계 교과 전형 지원 가능 대학</h2>
       <p className="subtitle muted">
-        지원할 대학을 선택하세요(여러 개 가능). 선택하면 <b>‘지원 가능 대학·학과’ 탭</b>에 학과별 입결 표가 만들어집니다.
+        지원할 대학을 선택하세요(여러 개 가능).
         {selectedUnivs.length > 0 && <> · 현재 <b>{selectedUnivs.length}개</b> 선택됨</>}
       </p>
       <div className="card-grid">
@@ -45,15 +45,11 @@ export function StrategyCards({ cards, selectedUnivs, onToggle, onDetail }: Prop
               role="button"
               aria-pressed={isSel}
               tabIndex={0}
-              onClick={() => {
-                onToggle(univ);
-                if (!isSel) onDetail(univ); // 선택 시 팝업 표시
-              }}
+              onClick={() => onToggle(univ)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   onToggle(univ);
-                  if (!isSel) onDetail(univ);
                 }
               }}
             >
