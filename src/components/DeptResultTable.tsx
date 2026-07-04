@@ -24,6 +24,13 @@ interface Pivot {
   band: RiskBand | '—';
 }
 type SortBy = 'band' | 'comp' | 'grade';
+type TypeFilter = 'all' | '교과' | '종합';
+const TYPE_TABS: { key: TypeFilter; label: string }[] = [
+  { key: 'all', label: '전체' },
+  { key: '교과', label: '교과전형 모아보기' },
+  { key: '종합', label: '종합전형 모아보기' },
+];
+const BAND_TABS: ('all' | RiskBand)[] = ['all', '안정', '적정', '소신'];
 
 interface Props {
   selectedUnivs: string[];
@@ -54,6 +61,7 @@ export function DeptResultTable({
   onToggleJonghap,
 }: Props) {
   const [bandFilter, setBandFilter] = useState<'all' | RiskBand>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [sortBy, setSortBy] = useState<SortBy>('band');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
@@ -95,12 +103,14 @@ export function DeptResultTable({
     const map = new Map<string, Pivot[]>();
     for (const p of pivots.values()) {
       if (bandFilter !== 'all' && p.band !== bandFilter) continue;
+      if (typeFilter === '교과' && !p.type.includes('교과')) continue;
+      if (typeFilter === '종합' && !isJonghap(p.type)) continue;
       const arr = map.get(p.univName) ?? [];
       arr.push(p);
       map.set(p.univName, arr);
     }
     return [...map.entries()].map(([u, ps]) => [u, ps.sort(cmpPivot)] as const);
-  }, [allRows, bandFilter, sortBy]);
+  }, [allRows, bandFilter, typeFilter, sortBy]);
 
   const shownCount = groups.reduce((s, [, items]) => s + items.length, 0);
   const colCount = 5 + yearsDesc.length;
@@ -117,7 +127,7 @@ export function DeptResultTable({
   if (selectedUnivs.length === 0) {
     return (
       <div className="panel">
-        <h2>4단계 지원 가능 대학·학과</h2>
+        <h2>4단계 수시 지원의 교과·종합 전형 추천 대학</h2>
         <p className="muted">‘교과전형 준비전략’ 탭에서 지원할 대학을 선택하면 학과별 입결 표가 만들어집니다.</p>
       </div>
     );
@@ -125,27 +135,46 @@ export function DeptResultTable({
 
   return (
     <div className="panel">
-      <h2>4단계 지원 가능 대학·학과</h2>
+      <h2>4단계 수시 지원의 교과·종합 전형 추천 대학</h2>
       <p className="subtitle muted">
         선택 {selectedUnivs.length}개 대학 · {shownCount}개 학과
         {desiredMajor ? ` · 희망학과 “${desiredMajor}”` : ' · 전체 학과'} · 셀: 위=50%컷 / 아래=70%컷, 5등급(9등급)
       </p>
-      <p className="subtitle muted">💡 <b>종합전형</b> 행을 클릭하면 강조 표시되고, <b>5단계 학생부종합전형 선택과목 추천</b>에 담깁니다.</p>
+      <p className="subtitle muted">💡 선택과목 추천을 원하는 대학의 <b>종합</b> 글자를 눌러주세요.</p>
+
+      <div className="type-tabs" role="tablist">
+        {TYPE_TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={typeFilter === t.key}
+            className={`type-tab${typeFilter === t.key ? ' active' : ''}`}
+            onClick={() => setTypeFilter(t.key)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div className="table-filters">
+        <div className="band-btns" role="group" aria-label="구분">
+          {BAND_TABS.map((b) => (
+            <button
+              key={b}
+              type="button"
+              className={`band-btn${bandFilter === b ? ' active' : ''}${b !== 'all' ? ` band-${b}` : ''}`}
+              onClick={() => setBandFilter(b)}
+            >
+              {b === 'all' ? '전체' : b}
+            </button>
+          ))}
+        </div>
         <label>정렬
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
             <option value="band">구분순</option>
             <option value="comp">실경쟁률순</option>
             <option value="grade">등급순</option>
-          </select>
-        </label>
-        <label>구분
-          <select value={bandFilter} onChange={(e) => setBandFilter(e.target.value as 'all' | RiskBand)}>
-            <option value="all">전체</option>
-            <option value="안정">안정</option>
-            <option value="적정">적정</option>
-            <option value="소신">소신</option>
           </select>
         </label>
         {collapsed.size > 0 && (
@@ -187,19 +216,26 @@ export function DeptResultTable({
                         const picked = jong && selectedJonghap.has(pickKey(p));
                         const cls = [
                           p.band !== '—' ? BAND_CLASS[p.band] : '',
-                          jong ? 'jonghap-row' : '',
                           picked ? 'jonghap-selected' : '',
                         ].filter(Boolean).join(' ') || undefined;
                         return (
-                        <tr
-                          key={i}
-                          className={cls}
-                          onClick={jong ? () => onToggleJonghap({ univName: p.univName, type: p.type, detail: p.detail, dept: p.dept }) : undefined}
-                          title={jong ? '클릭하면 5단계 선택과목 추천에 담깁니다' : undefined}
-                        >
+                        <tr key={i} className={cls}>
                           <td><span className="band-tag">{p.band}</span>{picked && <span className="jonghap-check"> ✓</span>}</td>
                           <td>{p.univName}</td>
-                          <td>{p.type.replace('전형', '')}</td>
+                          <td>
+                            {jong ? (
+                              <button
+                                type="button"
+                                className={`jonghap-type-btn${picked ? ' picked' : ''}`}
+                                onClick={() => onToggleJonghap({ univName: p.univName, type: p.type, detail: p.detail, dept: p.dept })}
+                                title="클릭하면 5단계 선택과목 추천에 담깁니다"
+                              >
+                                {p.type.replace('전형', '')}
+                              </button>
+                            ) : (
+                              p.type.replace('전형', '')
+                            )}
+                          </td>
                           <td>{p.detail || '—'}</td>
                           <td>{p.dept}</td>
                           {yearsDesc.map((y) => {

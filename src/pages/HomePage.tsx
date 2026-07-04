@@ -68,7 +68,7 @@ export function HomePage() {
         }
         actions={
           <>
-            <LinkButton to="/tool" variant="primary">전략 도구 시작하기</LinkButton>
+            <LinkButton to="/tool" variant="primary">현재 위치 진단 및 선택과목 결정</LinkButton>
             <LinkButton to="/tool" variant="secondary">성적 입력해 보기</LinkButton>
           </>
         }
