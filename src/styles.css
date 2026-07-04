@@ -230,6 +230,16 @@ tr.jonghap-selected, tr.jonghap-selected:hover { background: var(--navy-50, #eaf
 /* 5단계 데이터 부재 안내 */
 .jonghap-nodata { margin: 0; font-size: .9rem; line-height: 1.7; color: var(--muted); }
 
+/* 3단계 지역 선택 팝업 */
+.region-group { margin: 14px 0; }
+.region-group-label { display: block; font-size: .8rem; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+.region-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.region-chip { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--radius-pill, 999px); background: var(--surface, #fff); cursor: pointer; user-select: none; }
+.region-chip:hover { background: var(--bg-soft); }
+.region-chip.on { background: var(--green-500, #22c55e); border-color: var(--green-500, #22c55e); color: #fff; }
+.region-chip input { accent-color: #fff; margin: 0; }
+.region-foot { justify-content: space-between; }
+
 .table-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 10px; }
 .table-filters label { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted); }
 .table-filters select { font: inherit; padding: 4px 8px; }
