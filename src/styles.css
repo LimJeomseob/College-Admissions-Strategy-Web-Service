@@ -266,7 +266,16 @@ tr.jonghap-selected, tr.jonghap-selected:hover { background: var(--navy-50, #eaf
 .modal-close:hover { background: var(--bg-soft); }
 .modal-body { padding: 16px 18px; overflow-y: auto; }
 .modal-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
-.step-nav { display: flex; justify-content: flex-end; gap: 8px; margin: 8px 0 16px; }
+.step-nav { display: flex; justify-content: flex-end; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+.step-nav.between { justify-content: space-between; }
+.step-nav-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 홈 진입 — 희망학과 입력 + CTA */
+.home-start { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 440px; margin: 0 auto; }
+.home-start-label { margin: 0; font-weight: 800; font-size: 1.1rem; color: var(--ink); }
+.home-start .desired-major { width: 100%; margin: 0; }
+.home-start .desired-major label { align-items: center; text-align: center; gap: 6px; }
+.home-start .desired-major input { max-width: none; width: 100%; text-align: center; padding: 10px 12px; }
 
 .selected-univ-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .selected-univ-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-soft); }

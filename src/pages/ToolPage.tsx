@@ -29,8 +29,9 @@ import { UniversityDetailModal } from '../components/UniversityDetailModal';
 import { SelectedUnivsModal } from '../components/SelectedUnivsModal';
 import { JonghapRecommend } from '../components/JonghapRecommend';
 import { loadJonghapSubjects, type JonghapMap } from '../data/loadJonghapSubjects';
+import { useSession } from '../state/SessionContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import type { DataLayer, DeptRow, JonghapPick, SubjectInput, Track } from '../types';
+import type { DataLayer, DeptRow, JonghapPick, SubjectInput } from '../types';
 
 type TabId = 'input' | 'convert' | 'strategy' | 'apply' | 'jonghap';
 const TABS: { id: TabId; label: string }[] = [
@@ -47,12 +48,12 @@ export function ToolPage() {
   const [data, setData] = useState<DataLayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<SubjectInput[]>([]);
-  const [track, setTrack] = useState<Track>('인문');
-  const [desiredMajor, setDesiredMajor] = useState('');
+  const { desiredMajor, track, setDesiredMajor, setTrack } = useSession();
   const [submitted, setSubmitted] = useState(false);
   const [consented, setConsented] = useState<boolean | null>(null);
 
   const [activeTab, setActiveTab] = useState<TabId>('input');
+  const [maxStep, setMaxStep] = useState(0); // 도달한 최상위 단계(방문 단계는 자유 이동)
   const [selectedUnivs, setSelectedUnivs] = useState<string[]>([]);
   const [detailUniv, setDetailUniv] = useState<string | null>(null);
   const [showSelectedList, setShowSelectedList] = useState(false);
@@ -79,9 +80,10 @@ export function ToolPage() {
     };
   }, []);
 
-  // 탭 이동 + 사용이력(단계 진입) 로깅.
+  // 탭 이동 + 사용이력(단계 진입) 로깅. 도달 단계 갱신(뒤로 갔다가 다시 앞으로 자유 이동).
   const goTab = (id: TabId) => {
     setActiveTab(id);
+    setMaxStep((m) => Math.max(m, TABS.findIndex((t) => t.id === id)));
     logUsage('step_enter', id, undefined, { once: true });
   };
 
@@ -111,12 +113,6 @@ export function ToolPage() {
       active = false;
     };
   }, [user]);
-
-  const handleMajorChange = (v: string) => {
-    setDesiredMajor(v);
-    const lk = lookupMajor(v);
-    if (lk.track) setTrack(lk.track);
-  };
 
   const result = useMemo(() => {
     if (!data || !submitted) return null;
@@ -198,6 +194,9 @@ export function ToolPage() {
       prev.some((p) => pickKey(p) === pickKey(pick)) ? prev.filter((p) => pickKey(p) !== pickKey(pick)) : [...prev, pick],
     );
 
+  // 선형 스텝: 현재 단계 인덱스. 앞 단계로는 자유롭게, 다음 단계로는 '다음' 버튼으로만.
+  const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+
   if (error) return <main className="container"><p className="error">로드 오류: {error}</p></main>;
   if (!data) return <main className="container"><p>데이터 로딩 중…</p></main>;
 
@@ -212,13 +211,13 @@ export function ToolPage() {
       </header>
 
       <nav className="tabbar" role="tablist">
-        {TABS.map((t) => (
+        {TABS.map((t, i) => (
           <button
             key={t.id}
             role="tab"
             aria-selected={activeTab === t.id}
             className={`tab${activeTab === t.id ? ' active' : ''}`}
-            disabled={t.id !== 'input' && !result}
+            disabled={(t.id !== 'input' && !result) || i > maxStep}
             onClick={() => goTab(t.id)}
           >
             {t.label}
@@ -239,7 +238,7 @@ export function ToolPage() {
               goTab('convert');
             }}
           />
-          <DesiredMajorInput value={desiredMajor} onChange={handleMajorChange} />
+          <DesiredMajorInput value={desiredMajor} onChange={setDesiredMajor} />
         </section>
       )}
 
@@ -252,49 +251,28 @@ export function ToolPage() {
 
       {activeTab === 'strategy' &&
         (result ? (
-          <>
-            <StrategyCards
-              cards={result.strategies}
-              selectedUnivs={selectedUnivs}
-              onToggle={toggleUniv}
-              onDetail={setDetailUniv}
-            />
-            <div className="step-nav">
-              {selectedUnivs.length > 0 && (
-                <button type="button" className="secondary" onClick={() => setShowSelectedList(true)}>
-                  선택한 대학 {selectedUnivs.length}개 보기
-                </button>
-              )}
-              <button type="button" className="primary" onClick={() => goTab('apply')}>
-                다음 단계로 이동 (4단계) →
-              </button>
-            </div>
-          </>
+          <StrategyCards
+            cards={result.strategies}
+            selectedUnivs={selectedUnivs}
+            onToggle={toggleUniv}
+            onDetail={setDetailUniv}
+          />
         ) : (
           <NeedGrades />
         ))}
 
       {activeTab === 'apply' &&
         (result ? (
-          <>
-            <DeptResultTable
-              selectedUnivs={selectedUnivs}
-              desiredMajor={desiredMajor}
-              est9={result.conv.est9}
-              deptMap={deptMap}
-              conversion={data.conversion}
-              loading={deptLoading}
-              selectedJonghap={jonghapKeys}
-              onToggleJonghap={toggleJonghap}
-            />
-            {jonghapPicks.length > 0 && (
-              <div className="step-nav">
-                <button type="button" className="primary" onClick={() => goTab('jonghap')}>
-                  다음 단계로 이동 (5단계) →
-                </button>
-              </div>
-            )}
-          </>
+          <DeptResultTable
+            selectedUnivs={selectedUnivs}
+            desiredMajor={desiredMajor}
+            est9={result.conv.est9}
+            deptMap={deptMap}
+            conversion={data.conversion}
+            loading={deptLoading}
+            selectedJonghap={jonghapKeys}
+            onToggleJonghap={toggleJonghap}
+          />
         ) : (
           <NeedGrades />
         ))}
@@ -305,6 +283,27 @@ export function ToolPage() {
         ) : (
           <NeedGrades />
         ))}
+
+      {/* 선형 스텝 네비게이션 — 이전(자유)·다음(순차) */}
+      {result && activeTab !== 'input' && (
+        <div className="step-nav between">
+          <button type="button" className="secondary" onClick={() => goTab(TABS[currentIndex - 1].id)}>
+            ← 이전 단계
+          </button>
+          <div className="step-nav-right">
+            {activeTab === 'strategy' && selectedUnivs.length > 0 && (
+              <button type="button" className="secondary" onClick={() => setShowSelectedList(true)}>
+                선택한 대학 {selectedUnivs.length}개 보기
+              </button>
+            )}
+            {currentIndex < TABS.length - 1 && (
+              <button type="button" className="primary" onClick={() => goTab(TABS[currentIndex + 1].id)}>
+                다음 단계로 →
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {result && (
         <>
