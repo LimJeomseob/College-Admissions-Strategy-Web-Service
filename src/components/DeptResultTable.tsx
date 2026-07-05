@@ -31,6 +31,11 @@ const TYPE_TABS: { key: TypeFilter; label: string }[] = [
   { key: '종합', label: '종합전형 모아보기' },
 ];
 const BAND_TABS: ('all' | RiskBand)[] = ['all', '안정', '적정', '소신'];
+const SORT_TABS: { key: SortBy; label: string }[] = [
+  { key: 'band', label: '구분순' },
+  { key: 'comp', label: '경쟁률순' },
+  { key: 'grade', label: '등급순' },
+];
 
 interface Props {
   selectedUnivs: string[];
@@ -170,13 +175,19 @@ export function DeptResultTable({
             </button>
           ))}
         </div>
-        <label>정렬
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-            <option value="band">구분순</option>
-            <option value="comp">실경쟁률순</option>
-            <option value="grade">등급순</option>
-          </select>
-        </label>
+        <div className="sort-group" role="group" aria-label="정렬">
+          <span className="filter-cap">정렬</span>
+          {SORT_TABS.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              className={`band-btn${sortBy === s.key ? ' active' : ''}`}
+              onClick={() => setSortBy(s.key)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
         {collapsed.size > 0 && (
           <button type="button" className="detail-btn" onClick={() => setCollapsed(new Set())}>모두 펼치기</button>
         )}

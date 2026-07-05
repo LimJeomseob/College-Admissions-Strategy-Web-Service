@@ -221,6 +221,8 @@ tr.jonghap-selected, tr.jonghap-selected:hover { background: var(--navy-50, #eaf
 .band-btn.active.band-안정 { background: var(--stable, #1a7f37); border-color: var(--stable, #1a7f37); }
 .band-btn.active.band-적정 { background: var(--moderate, #9a6700); border-color: var(--moderate, #9a6700); }
 .band-btn.active.band-소신 { background: var(--reach, #cf222e); border-color: var(--reach, #cf222e); }
+.sort-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.filter-cap { font-size: .85rem; font-weight: 600; color: var(--muted); }
 
 /* 4단계 '종합' 글자 클릭(→5단계) */
 .jonghap-type-btn { font: inherit; font-weight: 700; color: var(--navy-700, #2f6f4f); background: none; border: none; padding: 2px 6px; border-radius: 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
