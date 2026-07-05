@@ -2,6 +2,8 @@ import { Hero } from '../components/ui/Hero';
 import { Section } from '../components/ui/Section';
 import { Card } from '../components/ui/Card';
 import { LinkButton } from '../components/ui/Button';
+import { DesiredMajorInput } from '../components/DesiredMajorInput';
+import { useSession } from '../state/SessionContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // 랜딩 페이지 — Hero + 5단계 전략 설명 + 주요 기능 카드 + 도구 CTA.
@@ -54,6 +56,7 @@ const FEATURES = [
 
 export function HomePage() {
   useDocumentTitle();
+  const { desiredMajor, setDesiredMajor } = useSession();
   return (
     <main>
       <Hero
@@ -67,10 +70,11 @@ export function HomePage() {
           </>
         }
         actions={
-          <>
+          <div className="home-start">
+            <p className="home-start-label">희망 학과를 입력하고 진단을 시작합시다</p>
+            <DesiredMajorInput value={desiredMajor} onChange={setDesiredMajor} />
             <LinkButton to="/tool" variant="primary">현재 위치 진단 및 선택과목 결정</LinkButton>
-            <LinkButton to="/tool" variant="secondary">성적 입력해 보기</LinkButton>
-          </>
+          </div>
         }
       />
 
