@@ -23,8 +23,9 @@ const STEP_LABEL: Record<string, string> = {
   strategy: '3단계 교과전형 전략',
   apply: '4단계 지원 가능 대학·학과',
   jonghap: '5단계 학생부종합전형 선택과목 추천',
+  report: '6단계 최종 보고서',
 };
-const STEP_ORDER = ['input', 'convert', 'strategy', 'apply', 'jonghap'];
+const STEP_ORDER = ['input', 'convert', 'strategy', 'apply', 'jonghap', 'report'];
 
 export function AdminUsageHistory() {
   const [accounts, setAccounts] = useState<Account[]>([]);

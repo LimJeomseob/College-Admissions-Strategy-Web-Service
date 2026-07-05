@@ -1,13 +1,18 @@
-import type { JonghapPick } from '../types';
+import { useEffect, useState } from 'react';
+import type { JonghapAiRec, JonghapPick, Track } from '../types';
 import { recommendFor, type JonghapMap, type JonghapRec } from '../data/loadJonghapSubjects';
+import { aiSubjectAdvice } from '../data/aiGuidance';
 
 // 5단계 학생부종합전형 선택과목 추천 — 4단계에서 선택한 종합전형 항목별로
 // 첨부 DB(public/jonghapSubjects.json)에서 핵심/권장/선택 과목을 안내.
+// REQ-41: DB에 없는 학과는 기존 Gemini 키로 타 대학 자료 근거의 추천을 AI가 생성.
 
 interface Props {
   picks: JonghapPick[];
   map: JonghapMap;
   loading: boolean;
+  track: Track;
+  desiredMajor: string;
 }
 
 const KIND_CLASS: Record<keyof JonghapRec, string> = { 핵심: 'chip-core', 권장: 'chip-rec', 선택: 'chip-opt' };
@@ -20,7 +25,30 @@ const NO_DATA_NOTE =
   '하지만 진로와 적성에 관심이 깊은 학생이라면 아래 과목을 선택하면 종합전형 지원에 더 유리할 수 있습니다. ' +
   '현재 이 대학·학과는 권장 과목을 발표하지 않았지만, 다른 대학에서 추천하는 과목들의 예시를 참고하여 정리하였습니다.';
 
-export function JonghapRecommend({ picks, map, loading }: Props) {
+const aiKey = (p: JonghapPick) => `${p.univName}|${p.dept}`;
+
+type AiState = { status: 'loading' | 'done' | 'error'; data?: JonghapAiRec };
+
+export function JonghapRecommend({ picks, map, loading, track, desiredMajor }: Props) {
+  const [aiByKey, setAiByKey] = useState<Record<string, AiState>>({});
+
+  // REQ-41: 데이터 부재 pick만 자동으로 AI 추천 생성(캐시로 1회). 맵 로딩 후 실행.
+  useEffect(() => {
+    if (loading) return;
+    for (const p of picks) {
+      const rec = recommendFor(map, p.univName, p.dept);
+      const hasAny = rec && KINDS.some((k) => rec[k].length > 0);
+      if (rec && hasAny) continue; // DB 데이터가 있으면 AI 불필요
+      const key = aiKey(p);
+      if (aiByKey[key]) continue; // 이미 시도됨
+      setAiByKey((prev) => ({ ...prev, [key]: { status: 'loading' } }));
+      aiSubjectAdvice({ univName: p.univName, dept: p.dept, track, desiredMajor })
+        .then((data) => setAiByKey((prev) => ({ ...prev, [key]: { status: 'done', data } })))
+        .catch(() => setAiByKey((prev) => ({ ...prev, [key]: { status: 'error' } })));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picks, map, loading, track, desiredMajor]);
+
   if (picks.length === 0) {
     return (
       <div className="panel">
@@ -31,6 +59,23 @@ export function JonghapRecommend({ picks, map, loading }: Props) {
       </div>
     );
   }
+
+  const renderKinds = (rec: JonghapRec, aiFlag = false) => (
+    <div className="jonghap-kinds">
+      {KINDS.map((k) =>
+        rec[k].length > 0 ? (
+          <div key={k} className="jonghap-kind">
+            <span className="jonghap-kind-label">{k}</span>
+            <span className="jonghap-chips">
+              {rec[k].map((s, j) => (
+                <span key={j} className={`subject-chip ${KIND_CLASS[k]}${aiFlag ? ' chip-ai' : ''}`}>{s}</span>
+              ))}
+            </span>
+          </div>
+        ) : null,
+      )}
+    </div>
+  );
 
   return (
     <div className="panel">
@@ -45,29 +90,31 @@ export function JonghapRecommend({ picks, map, loading }: Props) {
         {picks.map((p, i) => {
           const rec = recommendFor(map, p.univName, p.dept);
           const hasAny = rec && KINDS.some((k) => rec[k].length > 0);
+          const ai = aiByKey[aiKey(p)];
+          const aiRec = ai?.data;
+          const aiHasAny = aiRec && KINDS.some((k) => aiRec[k].length > 0);
           return (
             <article key={i} className="jonghap-card">
               <header>
                 <strong>{p.univName}</strong> · {p.dept}
                 <span className="muted"> · {p.type.replace('전형', '')}{p.detail ? ` (${p.detail})` : ''}</span>
               </header>
-              {!rec || !hasAny ? (
-                <p className="jonghap-nodata">{NO_DATA_NOTE}</p>
+              {rec && hasAny ? (
+                renderKinds(rec)
               ) : (
-                <div className="jonghap-kinds">
-                  {KINDS.map((k) =>
-                    rec[k].length > 0 ? (
-                      <div key={k} className="jonghap-kind">
-                        <span className="jonghap-kind-label">{k}</span>
-                        <span className="jonghap-chips">
-                          {rec[k].map((s, j) => (
-                            <span key={j} className={`subject-chip ${KIND_CLASS[k]}`}>{s}</span>
-                          ))}
-                        </span>
-                      </div>
-                    ) : null,
+                <>
+                  <p className="jonghap-nodata">{NO_DATA_NOTE}</p>
+                  {ai?.status === 'loading' && (
+                    <p className="muted">🤖 AI가 유사 대학 자료를 근거로 선택과목을 정리하는 중…</p>
                   )}
-                </div>
+                  {ai?.status === 'done' && aiRec && (
+                    <div className="jonghap-ai">
+                      <span className="ai-badge">AI 추천 · 참고용</span>
+                      {aiRec.reason && <p className="jonghap-ai-reason">{aiRec.reason}</p>}
+                      {aiHasAny && renderKinds(aiRec, true)}
+                    </div>
+                  )}
+                </>
               )}
             </article>
           );
