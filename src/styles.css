@@ -190,8 +190,8 @@ button.secondary:hover { background: var(--bg-soft); }
 .muted { color: var(--muted); }
 
 /* 단계별 탭 */
-.tabbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 16px; border-bottom: 2px solid var(--line); }
-.tab { font: inherit; font-weight: 600; font-size: .9rem; padding: 8px 14px; border: 1px solid var(--line); border-bottom: none; border-radius: 8px 8px 0 0; background: var(--bg-soft); color: var(--muted); cursor: pointer; }
+.tabbar { display: flex; flex-wrap: nowrap; gap: 6px; margin: 12px 0 16px; border-bottom: 2px solid var(--line); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.tab { flex: 0 0 auto; white-space: nowrap; font: inherit; font-weight: 600; font-size: .9rem; padding: 8px 14px; border: 1px solid var(--line); border-bottom: none; border-radius: 8px 8px 0 0; background: var(--bg-soft); color: var(--muted); cursor: pointer; }
 .tab:hover:not(:disabled) { color: var(--text, inherit); }
 .tab.active { background: var(--surface, #fff); color: var(--navy-700, #224); border-color: var(--line); box-shadow: 0 -2px 0 var(--navy-700, #224) inset; }
 .tab:disabled { opacity: .45; cursor: not-allowed; }
