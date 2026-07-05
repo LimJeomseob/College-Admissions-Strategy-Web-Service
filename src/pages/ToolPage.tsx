@@ -69,12 +69,23 @@ export function ToolPage() {
   const [jonghapMap, setJonghapMap] = useState<JonghapMap>({});
   const [jonghapLoading, setJonghapLoading] = useState(false);
 
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, blocked, refreshProfile } = useAuth();
 
   // REQ-70: 일일 분석 제한 — 오늘(KST) 사용 횟수. 관리자·게스트는 미적용.
+  // 5회까지 허용, 6회째 시도 시 계정 비활성화(active=false) + 안내 팝업. 비활성 계정은 열람만.
   const [dailyUsed, setDailyUsed] = useState<number | null>(null);
+  const [showLimitPopup, setShowLimitPopup] = useState(false);
   const limitOn = dailyLimitEnabled() && !!user && !isAdmin;
   const limitReached = limitOn && dailyUsed != null && dailyUsed >= DAILY_ANALYSIS_LIMIT;
+
+  // 6번째 분석 시도 → 계정 비활성화 + 안내 팝업.
+  const hitLimit = async () => {
+    if (supabase && user) {
+      await supabase.from('profiles').update({ active: false }).eq('id', user.id);
+      refreshProfile();
+    }
+    setShowLimitPopup(true);
+  };
 
   useEffect(() => {
     if (!limitOn || !user) {
@@ -259,19 +270,30 @@ export function ToolPage() {
 
       {activeTab === 'input' && (
         <section>
-          {limitOn && dailyUsed != null && (
-            <p className={limitReached ? 'warn' : 'upload-info'}>
-              {limitReached
-                ? `오늘 분석 가능 횟수(${DAILY_ANALYSIS_LIMIT}회)를 모두 사용했습니다. 자정 이후 다시 이용할 수 있습니다.`
-                : `오늘 남은 분석 횟수: ${Math.max(0, DAILY_ANALYSIS_LIMIT - dailyUsed)} / ${DAILY_ANALYSIS_LIMIT}회`}
-            </p>
+          {blocked ? (
+            <p className="warn">계정이 정지되어 새 분석을 실행할 수 없습니다(열람만 가능). 재이용은 이즈유 관리자에게 문의해 주세요.</p>
+          ) : (
+            limitOn && dailyUsed != null && (
+              <p className={limitReached ? 'warn' : 'upload-info'}>
+                {limitReached
+                  ? `오늘 분석 가능 횟수(${DAILY_ANALYSIS_LIMIT}회)를 모두 사용했습니다.`
+                  : `오늘 남은 분석 횟수: ${Math.max(0, DAILY_ANALYSIS_LIMIT - dailyUsed)} / ${DAILY_ANALYSIS_LIMIT}회`}
+              </p>
+            )
           )}
           <GradeInputForm
             track={track}
             onTrackChange={setTrack}
-            disabled={limitReached}
+            disabled={blocked}
             onSubmit={(rows) => {
-              if (limitReached) return;
+              if (blocked) {
+                setShowLimitPopup(true);
+                return;
+              }
+              if (limitReached) {
+                void hitLimit();
+                return;
+              }
               setSubjects(rows);
               setSubmitted(true);
               logUsage('analysis_run', 'input', { subjectCount: rows.length });
@@ -401,6 +423,24 @@ export function ToolPage() {
           admissions={data.admissions}
           onClose={() => setDetailUniv(null)}
         />
+      )}
+
+      {showLimitPopup && (
+        <div className="modal-overlay" onClick={() => setShowLimitPopup(false)}>
+          <div className="modal-dialog limit-popup" onClick={(e) => e.stopPropagation()}>
+            <header className="modal-head">
+              <h3>이용 안내</h3>
+              <button className="modal-close" onClick={() => setShowLimitPopup(false)} aria-label="닫기">✕</button>
+            </header>
+            <div className="modal-body">
+              <p>오늘 분석 {DAILY_ANALYSIS_LIMIT}회를 모두 사용하여 계정이 정지되었습니다.</p>
+              <p>기존 결과는 계속 열람할 수 있으며, 재이용은 <b>이즈유 관리자</b>에게 문의해 주세요.</p>
+            </div>
+            <div className="modal-foot">
+              <button className="primary" onClick={() => setShowLimitPopup(false)}>확인</button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

@@ -398,6 +398,8 @@ button.sm { font-size: .78rem; padding: 3px 10px; }
 .modal-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
 .modal-close:hover { background: var(--bg-soft); }
 .modal-body { padding: 16px 18px; overflow-y: auto; }
+.limit-popup { max-width: 440px; }
+.limit-popup .modal-body p { margin: 0 0 8px; line-height: 1.7; }
 .modal-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
 .step-nav { display: flex; justify-content: flex-end; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
 .step-nav.between { justify-content: space-between; }
