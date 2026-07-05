@@ -61,14 +61,6 @@ export function HomePage() {
     <main>
       <Hero
         title={<>5등급제 내신으로 그리는<br className="br-md" />데이터 기반 대입 전략</>}
-        subtitle={
-          <>
-            성적 입력 한 번으로 지원 가능 대학·학과부터 교과전형 준비전략,
-            종합전형 선택과목 추천까지 한 흐름으로 안내합니다.
-            <br className="br-md" />
-            과거 입결에 현재 위치를 투영한 참고 지표예요.
-          </>
-        }
         actions={
           <div className="home-start">
             <p className="home-start-label">희망 학과를 입력하고 진단을 시작합시다</p>
