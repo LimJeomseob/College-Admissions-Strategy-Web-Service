@@ -13,7 +13,7 @@ export function DesiredMajorInput({ value, onChange }: Props) {
   return (
     <div className="desired-major">
       <label>
-        희망학과 <small className="muted">(선택 · 결과 우선정렬용, 저장되지 않음)</small>
+        희망학과
         <input
           list="major-suggestions"
           value={value}
