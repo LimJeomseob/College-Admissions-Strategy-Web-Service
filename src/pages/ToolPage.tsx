@@ -22,7 +22,6 @@ import { lookupMajor } from '../data/majorFamilies';
 import { useAuth } from '../auth/AuthProvider';
 import { supabase } from '../auth/supabaseClient';
 import { GradeInputForm } from '../components/GradeInputForm';
-import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { ConversionPanel } from '../components/ConversionPanel';
 import { DeptResultTable, pickKey } from '../components/DeptResultTable';
 import { StrategyCards } from '../components/StrategyCards';
@@ -268,7 +267,6 @@ export function ToolPage() {
               goTab('convert');
             }}
           />
-          <DesiredMajorInput value={desiredMajor} onChange={setDesiredMajor} />
         </section>
       )}
 
