@@ -8,6 +8,7 @@ interface Account {
   id: string;
   academy_name: string | null;
   director_name: string | null;
+  contact: string | null;
 }
 
 const EVENT_LABEL: Record<string, string> = {
@@ -34,13 +35,15 @@ export function AdminUsageHistory() {
   const [loading, setLoading] = useState(true);
   const [evLoading, setEvLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accEdit, setAccEdit] = useState(false);
+  const [accDraft, setAccDraft] = useState({ academy_name: '', director_name: '', contact: '' });
 
   useEffect(() => {
     if (!supabase) return;
     // 프로필 목록 + 전체 사용 횟수(계정별) 집계 — usage_events.user_id 단일 컬럼만 조회.
     supabase
       .from('profiles')
-      .select('id, academy_name, director_name')
+      .select('id, academy_name, director_name, contact')
       .order('academy_name', { ascending: true })
       .then(({ data, error }) => {
         if (error) setError(error.message);
@@ -85,6 +88,28 @@ export function AdminUsageHistory() {
     if (selected) setCountByUser((c) => ({ ...c, [selected]: Math.max(0, (c[selected] ?? 1) - 1) }));
   };
 
+  // 선택 계정 정보(학원명·원장·연락처) 편집 시작·저장.
+  const startAccEdit = (a: Account) => {
+    setAccDraft({
+      academy_name: a.academy_name ?? '',
+      director_name: a.director_name ?? '',
+      contact: a.contact ?? '',
+    });
+    setAccEdit(true);
+  };
+  const saveAccEdit = async () => {
+    if (!supabase || !selected) return;
+    const patch = {
+      academy_name: accDraft.academy_name.trim() || null,
+      director_name: accDraft.director_name.trim() || null,
+      contact: accDraft.contact.trim() || null,
+    };
+    const { error } = await supabase.from('profiles').update(patch).eq('id', selected);
+    if (error) return setError(error.message);
+    setAccounts((as) => as.map((a) => (a.id === selected ? { ...a, ...patch } : a)));
+    setAccEdit(false);
+  };
+
   // 선택 계정의 사용 이력 전체 삭제(초기화).
   const clearAll = async () => {
     if (!supabase || !selected) return;
@@ -108,6 +133,8 @@ export function AdminUsageHistory() {
 
   if (loading) return <p>불러오는 중…</p>;
 
+  const selectedAccount = accounts.find((a) => a.id === selected) ?? null;
+
   return (
     <section className="admin-usage">
       <h3>계정별 사용 이력</h3>
@@ -123,7 +150,7 @@ export function AdminUsageHistory() {
               <li key={a.id}>
                 <button
                   className={`usage-account${selected === a.id ? ' active' : ''}`}
-                  onClick={() => setSelected(a.id)}
+                  onClick={() => { setSelected(a.id); setAccEdit(false); }}
                 >
                   <span>{a.academy_name || '(학원 미입력)'}{a.director_name ? ` · ${a.director_name} 원장` : ''}</span>
                   <span className="usage-count-badge">{countByUser[a.id] ?? 0}</span>
@@ -136,12 +163,35 @@ export function AdminUsageHistory() {
         <div className="usage-timeline">
           {!selected ? (
             <p className="muted">왼쪽에서 계정을 선택하세요.</p>
-          ) : evLoading ? (
-            <p>불러오는 중…</p>
-          ) : events.length === 0 ? (
-            <p className="muted">기록된 사용 이력이 없습니다.</p>
           ) : (
             <>
+              {selectedAccount && (
+                <div className="usage-acc-panel">
+                  {accEdit ? (
+                    <div className="usage-acc-form">
+                      <input placeholder="학원명" value={accDraft.academy_name} onChange={(e) => setAccDraft((d) => ({ ...d, academy_name: e.target.value }))} />
+                      <input placeholder="원장 성함" value={accDraft.director_name} onChange={(e) => setAccDraft((d) => ({ ...d, director_name: e.target.value }))} />
+                      <input placeholder="연락처" value={accDraft.contact} onChange={(e) => setAccDraft((d) => ({ ...d, contact: e.target.value }))} />
+                      <button onClick={saveAccEdit}>저장</button>
+                      <button onClick={() => setAccEdit(false)}>취소</button>
+                    </div>
+                  ) : (
+                    <div className="usage-acc-view">
+                      <b>{selectedAccount.academy_name || '(학원 미입력)'}</b>
+                      {selectedAccount.director_name ? ` · ${selectedAccount.director_name} 원장` : ''}
+                      {selectedAccount.contact ? ` · ${selectedAccount.contact}` : ''}
+                      <button type="button" className="usage-acc-editbtn" onClick={() => startAccEdit(selectedAccount)}>계정 정보 수정</button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {evLoading ? (
+                <p>불러오는 중…</p>
+              ) : events.length === 0 ? (
+                <p className="muted">기록된 사용 이력이 없습니다.</p>
+              ) : (
+                <>
               <div className="usage-summary">
                 <div className="usage-summary-row">
                   <span className="usage-stat usage-stat-total">총 <b>{stats.total}</b>회</span>
@@ -174,6 +224,8 @@ export function AdminUsageHistory() {
                   ))}
                 </tbody>
               </table>
+                </>
+              )}
             </>
           )}
         </div>
