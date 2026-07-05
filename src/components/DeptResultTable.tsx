@@ -133,7 +133,7 @@ export function DeptResultTable({
     return (
       <div className="panel">
         <h2>4단계 수시 지원의 교과·종합 전형 추천 대학</h2>
-        <p className="muted">‘교과전형 준비전략’ 탭에서 지원할 대학을 선택하면 학과별 입결 표가 만들어집니다.</p>
+        <p className="muted">이전 단계에서 지원할 대학을 먼저 선택해 주세요.</p>
       </div>
     );
   }
