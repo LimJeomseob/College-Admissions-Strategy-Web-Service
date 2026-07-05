@@ -329,6 +329,7 @@ export function ToolPage() {
             selectedUnivs={selectedUnivs}
             jonghapPicks={jonghapPicks}
             jonghapMap={jonghapMap}
+            deptMap={deptMap}
             triageMessage={result.triageResult.message}
             onComplete={() => logUsage('step_complete', 'report', undefined, { once: true })}
           />

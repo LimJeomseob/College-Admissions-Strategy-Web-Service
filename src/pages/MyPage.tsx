@@ -227,7 +227,7 @@ export function MyPage() {
                       <span className="muted">{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
                       <button type="button" className="secondary sm" onClick={() => removeReport(r.id)}>삭제</button>
                     </div>
-                    {openReport === r.id && r.data?.report && <ReportContent report={r.data.report} />}
+                    {openReport === r.id && r.data?.report && <ReportContent report={r.data.report} gyo={r.data.gyo} />}
                   </li>
                 ))}
               </ul>

@@ -1,5 +1,6 @@
 import { supabase } from '../auth/supabaseClient';
 import type { FinalReportData } from '../types';
+import type { GyoBandRow } from './loadDeptAdmissions';
 
 // REQ-60: 최종 보고서 저장·조회 (public.reports, RLS: 본인·관리자).
 
@@ -12,6 +13,7 @@ export interface SavedReportMeta {
 export interface SavedReportPayload {
   report: FinalReportData;
   meta: SavedReportMeta;
+  gyo?: GyoBandRow[];
 }
 export interface SavedReport {
   id: number;
