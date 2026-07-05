@@ -7,11 +7,10 @@ import { AdminUsageHistory } from '../components/admin/AdminUsageHistory';
 import { STEP_DB_CONFIGS } from '../config/stepDbConfigs';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-type AdminTab = 'admins' | 'accounts' | 'students' | 'db' | 'usage';
+type AdminTab = 'admins' | 'accounts' | 'db' | 'usage';
 const ADMIN_TABS: { id: AdminTab; label: string }[] = [
   { id: 'admins', label: '관리자 관리' },
   { id: 'accounts', label: '계정 관리' },
-  { id: 'students', label: '성적 입력 현황' },
   { id: 'db', label: '단계별 DB 관리' },
   { id: 'usage', label: '사용 이력' },
 ];
@@ -42,10 +41,6 @@ interface StudentRow {
   grades_updated_at: string | null;
   created_at: string | null;
 }
-
-// 평균 표시: 소수 둘째 자리, 값 없으면 '—'.
-const fmtAvg = (v: number | null | undefined) =>
-  typeof v === 'number' ? v.toFixed(2) : '—';
 
 export function AdminPage() {
   useDocumentTitle('관리자 관리');
@@ -308,55 +303,6 @@ export function AdminPage() {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      )}
-        </div>
-      )}
-
-      {tab === 'students' && (
-        <div className="admin-section">
-      <p className="subtitle muted">
-        동의한 로그인 학생이 전략 도구에서 산출한 과목 평균 등급입니다. <small>※ 한국사는 사회 교과에 포함됩니다.</small>
-      </p>
-
-      {studentsLoading ? (
-        <p>불러오는 중…</p>
-      ) : students.length === 0 ? (
-        <p className="muted">아직 저장된 학생 성적이 없습니다.</p>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table className="result-table">
-            <thead>
-              <tr>
-                <th>학원</th>
-                <th>이름</th>
-                <th>학년</th>
-                <th>희망학과</th>
-                <th>계열</th>
-                <th>국수영사과한</th>
-                <th>국수영사</th>
-                <th>국수영과</th>
-                <th>동의</th>
-                <th>최종 저장</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.academy_name || '—'}</td>
-                  <td>{s.name || '—'}</td>
-                  <td>{s.grade || '—'}</td>
-                  <td>{s.desired_major || '—'}</td>
-                  <td>{s.track || '—'}</td>
-                  <td>{fmtAvg(s.combo_averages?.['국수영사과'])}</td>
-                  <td>{fmtAvg(s.combo_averages?.['국수영사'])}</td>
-                  <td>{fmtAvg(s.combo_averages?.['국수영과'])}</td>
-                  <td>{s.consent_at ? '✓' : '—'}</td>
-                  <td>{s.grades_updated_at ? new Date(s.grades_updated_at).toLocaleDateString('ko-KR') : '—'}</td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>
