@@ -59,6 +59,15 @@ export function AdminPage() {
   const [studentsLoading, setStudentsLoading] = useState(true);
   const [tab, setTab] = useState<AdminTab>('admins');
 
+  // 계정 관리 인라인 편집
+  const [editAccId, setEditAccId] = useState<string | null>(null);
+  const [accDraft, setAccDraft] = useState<{ academy_name: string; director_name: string; contact: string; track: string }>({
+    academy_name: '',
+    director_name: '',
+    contact: '',
+    track: '',
+  });
+
   const load = async () => {
     if (!supabase) return;
     const { data, error } = await supabase
@@ -89,6 +98,32 @@ export function AdminPage() {
     const { error } = await supabase.from('profiles').update({ active: next }).eq('id', row.id);
     if (error) setError(error.message);
     else setStudents((rs) => rs.map((r) => (r.id === row.id ? { ...r, active: next } : r)));
+  };
+
+  // 계정 관리 편집 — 학원명·원장·연락처·계열 인라인 수정.
+  const startEditAcc = (row: StudentRow) => {
+    setEditAccId(row.id);
+    setAccDraft({
+      academy_name: row.academy_name ?? '',
+      director_name: row.director_name ?? '',
+      contact: row.contact ?? '',
+      track: row.track ?? '',
+    });
+  };
+  const saveEditAcc = async () => {
+    if (!supabase || !editAccId) return;
+    const patch = {
+      academy_name: accDraft.academy_name.trim() || null,
+      director_name: accDraft.director_name.trim() || null,
+      contact: accDraft.contact.trim() || null,
+      track: accDraft.track || null,
+    };
+    const { error } = await supabase.from('profiles').update(patch).eq('id', editAccId);
+    if (error) setError(error.message);
+    else {
+      setStudents((rs) => rs.map((r) => (r.id === editAccId ? { ...r, ...patch } : r)));
+      setEditAccId(null);
+    }
   };
 
   useEffect(() => {
@@ -221,11 +256,35 @@ export function AdminPage() {
                 <th>계열</th>
                 <th>가입일</th>
                 <th>상태</th>
+                <th>관리</th>
               </tr>
             </thead>
             <tbody>
               {students.map((s) => {
                 const isActive = s.active !== false;
+                if (editAccId === s.id) {
+                  return (
+                    <tr key={s.id} className="db-edit-row">
+                      <td><input value={accDraft.academy_name} onChange={(e) => setAccDraft((d) => ({ ...d, academy_name: e.target.value }))} /></td>
+                      <td><input value={accDraft.director_name} onChange={(e) => setAccDraft((d) => ({ ...d, director_name: e.target.value }))} /></td>
+                      <td>{s.email || '—'}</td>
+                      <td><input value={accDraft.contact} onChange={(e) => setAccDraft((d) => ({ ...d, contact: e.target.value }))} /></td>
+                      <td>
+                        <select value={accDraft.track} onChange={(e) => setAccDraft((d) => ({ ...d, track: e.target.value }))}>
+                          <option value="">—</option>
+                          <option value="인문">인문</option>
+                          <option value="자연">자연</option>
+                        </select>
+                      </td>
+                      <td>{s.created_at ? new Date(s.created_at).toLocaleDateString('ko-KR') : '—'}</td>
+                      <td>{isActive ? '활성' : '비활성'}</td>
+                      <td className="db-row-actions">
+                        <button onClick={saveEditAcc}>저장</button>
+                        <button onClick={() => setEditAccId(null)}>취소</button>
+                      </td>
+                    </tr>
+                  );
+                }
                 return (
                   <tr key={s.id} className={isActive ? undefined : 'row-inactive'}>
                     <td>{s.academy_name || '—'}</td>
@@ -242,6 +301,9 @@ export function AdminPage() {
                       >
                         {isActive ? '활성' : '비활성'}
                       </button>
+                    </td>
+                    <td className="db-row-actions">
+                      <button onClick={() => startEditAcc(s)}>수정</button>
                     </td>
                   </tr>
                 );
