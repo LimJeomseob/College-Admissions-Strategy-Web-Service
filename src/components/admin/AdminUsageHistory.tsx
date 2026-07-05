@@ -65,7 +65,7 @@ export function AdminUsageHistory() {
     setEvLoading(true);
     supabase
       .from('usage_events')
-      .select('event_type, step, meta, created_at')
+      .select('id, event_type, step, meta, created_at')
       .eq('user_id', selected)
       .order('created_at', { ascending: false })
       .limit(1000)
@@ -75,6 +75,25 @@ export function AdminUsageHistory() {
         setEvLoading(false);
       });
   }, [selected]);
+
+  // 개별 사용 이력 삭제 (관리자 delete 정책).
+  const deleteEvent = async (id?: number) => {
+    if (!supabase || id == null) return;
+    const { error } = await supabase.from('usage_events').delete().eq('id', id);
+    if (error) return setError(error.message);
+    setEvents((es) => es.filter((e) => e.id !== id));
+    if (selected) setCountByUser((c) => ({ ...c, [selected]: Math.max(0, (c[selected] ?? 1) - 1) }));
+  };
+
+  // 선택 계정의 사용 이력 전체 삭제(초기화).
+  const clearAll = async () => {
+    if (!supabase || !selected) return;
+    if (!window.confirm('이 계정의 사용 이력을 모두 삭제할까요? 되돌릴 수 없습니다.')) return;
+    const { error } = await supabase.from('usage_events').delete().eq('user_id', selected);
+    if (error) return setError(error.message);
+    setEvents([]);
+    setCountByUser((c) => ({ ...c, [selected]: 0 }));
+  };
 
   // 선택 계정의 이벤트별·단계별 횟수 집계.
   const stats = useMemo(() => {
@@ -129,6 +148,7 @@ export function AdminUsageHistory() {
                   {EVENT_ORDER.filter((k) => stats.byEvent[k]).map((k) => (
                     <span key={k} className="usage-stat">{EVENT_LABEL[k]} <b>{stats.byEvent[k]}</b></span>
                   ))}
+                  <button type="button" className="usage-clear-btn" onClick={clearAll}>전체 삭제</button>
                 </div>
                 <div className="usage-summary-row">
                   {STEP_ORDER.filter((s) => stats.byStep[s]).map((s) => (
@@ -141,14 +161,15 @@ export function AdminUsageHistory() {
 
               <table className="result-table">
                 <thead>
-                  <tr><th>일시</th><th>이벤트</th><th>단계</th></tr>
+                  <tr><th>일시</th><th>이벤트</th><th>단계</th><th></th></tr>
                 </thead>
                 <tbody>
                   {events.map((e, i) => (
-                    <tr key={i}>
+                    <tr key={e.id ?? i}>
                       <td>{new Date(e.created_at).toLocaleString('ko-KR')}</td>
                       <td>{EVENT_LABEL[e.event_type] ?? e.event_type}</td>
                       <td>{e.step ? STEP_LABEL[e.step] ?? e.step : '—'}</td>
+                      <td className="db-row-actions"><button onClick={() => deleteEvent(e.id)}>삭제</button></td>
                     </tr>
                   ))}
                 </tbody>
