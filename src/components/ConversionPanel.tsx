@@ -22,7 +22,7 @@ export function ConversionPanel({ averages, conv, triage }: Props) {
 
       <p className="convert-caption">5등급 체계에서 계산한 현재 성적</p>
       <div className="avg-grid">
-        {(Object.keys(averages) as (keyof ComboAverages)[]).map((k) => (
+        {(Object.keys(averages) as (keyof ComboAverages)[]).filter((k) => k !== '전과목').map((k) => (
           <div key={k} className="avg-cell">
             <span className="avg-label">{k}</span>
             <span className="avg-value">{averages[k] != null ? averages[k]!.toFixed(2) : '—'}</span>

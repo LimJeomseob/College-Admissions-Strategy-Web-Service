@@ -6,7 +6,8 @@ import { useAuth } from '../auth/AuthProvider';
 
 // ① 입력 계층: 성적표 양식 표 형태 입력 + 파일 업로드 프리필
 
-const CATEGORIES: SubjectInput['category'][] = ['국어', '수학', '영어', '사회', '과학', '기타'];
+// 입력 범위: 국·수·영·사/과 (기타·전과목 제외) — REQ-06
+const CATEGORIES: SubjectInput['category'][] = ['국어', '수학', '영어', '사회', '과학'];
 
 interface Props {
   track: Track;
