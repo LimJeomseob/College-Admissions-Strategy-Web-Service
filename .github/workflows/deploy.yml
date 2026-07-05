@@ -12,7 +12,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # 배포는 취소하지 않고 순차 대기(연속 병합 시 진행 중 배포를 취소하면 다음 배포가 실패할 수 있음).
+  cancel-in-progress: false
 
 jobs:
   build:
