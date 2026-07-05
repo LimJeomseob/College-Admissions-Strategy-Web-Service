@@ -63,6 +63,51 @@ main, .site-footer { position: relative; z-index: 1; }
 .home-step-title { margin: 2px 0 var(--space-2); font-size: var(--fs-base); font-weight: 800; color: var(--ink); }
 .home-step-desc { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.65; }
 
+/* 5단계 원형 흐름(원그래프 + 화살표) */
+.step-wheel-wrap { display: flex; flex-direction: column; align-items: center; gap: var(--space-5); }
+.step-wheel { position: relative; width: min(92vw, 400px); aspect-ratio: 1; margin: 0 auto; }
+.step-wheel-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.wheel-ring-circle { fill: none; stroke: var(--border); stroke-width: 0.8; stroke-dasharray: 1.6 2.4; }
+.wheel-arrow { fill: var(--green-500); }
+.wheel-node {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  width: 64px; padding: 0; background: none; border: none; cursor: pointer;
+}
+.wheel-node-num {
+  width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--border); color: var(--ink);
+  font-weight: 800; font-size: 1.05rem; box-shadow: var(--shadow-sm);
+  transition: transform .15s, background .15s, border-color .15s, box-shadow .15s, color .15s;
+}
+.wheel-node-label { font-size: .74rem; font-weight: 700; color: var(--muted); white-space: nowrap; transition: color .15s; }
+.wheel-node:hover .wheel-node-num,
+.wheel-node.active .wheel-node-num {
+  background: var(--green-500); border-color: var(--green-500); color: #fff; transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
+}
+.wheel-node.active .wheel-node-label { color: var(--ink); }
+.wheel-node:focus-visible .wheel-node-num { outline: 2px solid var(--green-500); outline-offset: 2px; }
+.wheel-center {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 33%; aspect-ratio: 1; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.wheel-center-kicker { font-size: .66rem; letter-spacing: .14em; color: var(--muted); font-weight: 700; }
+.wheel-center-num { font-size: clamp(1.8rem, 8vw, 2.6rem); font-weight: 900; line-height: 1; color: var(--green-500); }
+.wheel-center-total { font-size: .72rem; color: var(--muted); }
+.step-wheel-detail { max-width: 520px; text-align: center; animation: wheelfade .28s ease; }
+.step-wheel-detail h3 { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 8px; font-size: 1.15rem; color: var(--ink); }
+.detail-badge { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--green-500); color: #fff; font-size: .85rem; font-weight: 800; }
+.step-wheel-detail p { margin: 0; color: var(--muted); line-height: 1.75; }
+@keyframes wheelfade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 480px) {
+  .wheel-node { width: 56px; }
+  .wheel-node-num { width: 40px; height: 40px; font-size: .95rem; }
+  .wheel-node-label { font-size: .68rem; }
+}
+
 /* 모바일 최적화 — 섹션 여백·그리드 간격 축소, 강제 줄바꿈 해제 */
 @media (max-width: 640px) {
   .ui-section { padding: var(--space-6) var(--space-4); }
