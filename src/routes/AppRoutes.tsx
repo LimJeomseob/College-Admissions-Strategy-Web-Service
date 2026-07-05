@@ -5,7 +5,7 @@ import { ToolPage } from '../pages/ToolPage';
 import { LoginPage } from '../pages/LoginPage';
 import { AdminPage } from '../pages/AdminPage';
 import { MyPage } from '../pages/MyPage';
-import { RequireAdmin, RequireAuth, RequireActive } from '../auth/guards';
+import { RequireAdmin, RequireAuth, RequireActive, RequireProfile } from '../auth/guards';
 
 // 라우트 구성 — HashRouter 하위(`#/tool` 형태)로 GitHub Pages 서브경로에서
 // 딥링크 404 없이 동작. (main.tsx 에서 HashRouter 로 감쌈)
@@ -14,7 +14,7 @@ export function AppRoutes() {
     <Routes>
       <Route element={<PageShell />}>
         <Route index element={<HomePage />} />
-        <Route path="tool" element={<RequireActive><ToolPage /></RequireActive>} />
+        <Route path="tool" element={<RequireActive><RequireProfile><ToolPage /></RequireProfile></RequireActive>} />
 
         {/* Phase B — 인증/개인정보/관리자 */}
         <Route path="login" element={<LoginPage />} />

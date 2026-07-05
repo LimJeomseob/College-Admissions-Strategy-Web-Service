@@ -7,9 +7,10 @@ import { AdminUsageHistory } from '../components/admin/AdminUsageHistory';
 import { STEP_DB_CONFIGS } from '../config/stepDbConfigs';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-type AdminTab = 'admins' | 'students' | 'db' | 'usage';
+type AdminTab = 'admins' | 'accounts' | 'students' | 'db' | 'usage';
 const ADMIN_TABS: { id: AdminTab; label: string }[] = [
   { id: 'admins', label: '관리자 관리' },
+  { id: 'accounts', label: '계정 관리' },
   { id: 'students', label: '성적 입력 현황' },
   { id: 'db', label: '단계별 DB 관리' },
   { id: 'usage', label: '사용 이력' },
@@ -32,12 +33,14 @@ interface StudentRow {
   name: string | null;
   grade: string | null;
   contact: string | null;
+  email: string | null;
   desired_major: string | null;
   track: string | null;
   consent_at: string | null;
   active: boolean | null;
   combo_averages: Record<string, number | null> | null;
   grades_updated_at: string | null;
+  created_at: string | null;
 }
 
 // 평균 표시: 소수 둘째 자리, 값 없으면 '—'.
@@ -72,7 +75,7 @@ export function AdminPage() {
     if (!supabase) return;
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, academy_name, director_name, name, grade, contact, desired_major, track, consent_at, active, combo_averages, grades_updated_at')
+      .select('id, academy_name, director_name, name, grade, contact, email, desired_major, track, consent_at, active, combo_averages, grades_updated_at, created_at')
       .order('grades_updated_at', { ascending: false, nullsFirst: false });
     if (error) setError(error.message);
     else setStudents((data as StudentRow[]) ?? []);
@@ -124,7 +127,7 @@ export function AdminPage() {
 
   return (
     <main className="container auth-page">
-      <h1>관리자</h1>
+      <h1 className="admin-page-title">관리자</h1>
 
       <nav className="tabbar" role="tablist">
         {ADMIN_TABS.map((t) => (
@@ -197,6 +200,59 @@ export function AdminPage() {
         </div>
       )}
 
+      {tab === 'accounts' && (
+        <div className="admin-section">
+      <p className="subtitle muted">전체 가입 계정입니다. 상태 버튼으로 계정을 활성/비활성할 수 있습니다. <small>비활성 계정은 전략 도구를 사용할 수 없습니다.</small></p>
+
+      {error && <p className="error">{error}</p>}
+      {studentsLoading ? (
+        <p>불러오는 중…</p>
+      ) : students.length === 0 ? (
+        <p className="muted">아직 가입한 계정이 없습니다.</p>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table className="result-table">
+            <thead>
+              <tr>
+                <th>학원</th>
+                <th>원장</th>
+                <th>이메일</th>
+                <th>연락처</th>
+                <th>계열</th>
+                <th>가입일</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s) => {
+                const isActive = s.active !== false;
+                return (
+                  <tr key={s.id} className={isActive ? undefined : 'row-inactive'}>
+                    <td>{s.academy_name || '—'}</td>
+                    <td>{s.director_name || '—'}</td>
+                    <td>{s.email || '—'}</td>
+                    <td>{s.contact || '—'}</td>
+                    <td>{s.track || '—'}</td>
+                    <td>{s.created_at ? new Date(s.created_at).toLocaleDateString('ko-KR') : '—'}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className={`account-toggle${isActive ? ' on' : ' off'}`}
+                        onClick={() => toggleActive(s)}
+                      >
+                        {isActive ? '활성' : '비활성'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+        </div>
+      )}
+
       {tab === 'students' && (
         <div className="admin-section">
       <p className="subtitle muted">
@@ -213,49 +269,32 @@ export function AdminPage() {
             <thead>
               <tr>
                 <th>학원</th>
-                <th>원장</th>
                 <th>이름</th>
                 <th>학년</th>
                 <th>희망학과</th>
                 <th>계열</th>
-                <th>연락처</th>
                 <th>국수영사과한</th>
                 <th>국수영사</th>
                 <th>국수영과</th>
                 <th>동의</th>
                 <th>최종 저장</th>
-                <th>상태</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s) => {
-                const isActive = s.active !== false;
-                return (
-                  <tr key={s.id} className={isActive ? undefined : 'row-inactive'}>
-                    <td>{s.academy_name || '—'}</td>
-                    <td>{s.director_name || '—'}</td>
-                    <td>{s.name || '—'}</td>
-                    <td>{s.grade || '—'}</td>
-                    <td>{s.desired_major || '—'}</td>
-                    <td>{s.track || '—'}</td>
-                    <td>{s.contact || '—'}</td>
-                    <td>{fmtAvg(s.combo_averages?.['국수영사과'])}</td>
-                    <td>{fmtAvg(s.combo_averages?.['국수영사'])}</td>
-                    <td>{fmtAvg(s.combo_averages?.['국수영과'])}</td>
-                    <td>{s.consent_at ? '✓' : '—'}</td>
-                    <td>{s.grades_updated_at ? new Date(s.grades_updated_at).toLocaleDateString('ko-KR') : '—'}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className={`account-toggle${isActive ? ' on' : ' off'}`}
-                        onClick={() => toggleActive(s)}
-                      >
-                        {isActive ? '활성' : '비활성'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {students.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.academy_name || '—'}</td>
+                  <td>{s.name || '—'}</td>
+                  <td>{s.grade || '—'}</td>
+                  <td>{s.desired_major || '—'}</td>
+                  <td>{s.track || '—'}</td>
+                  <td>{fmtAvg(s.combo_averages?.['국수영사과'])}</td>
+                  <td>{fmtAvg(s.combo_averages?.['국수영사'])}</td>
+                  <td>{fmtAvg(s.combo_averages?.['국수영과'])}</td>
+                  <td>{s.consent_at ? '✓' : '—'}</td>
+                  <td>{s.grades_updated_at ? new Date(s.grades_updated_at).toLocaleDateString('ko-KR') : '—'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

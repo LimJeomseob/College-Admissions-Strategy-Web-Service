@@ -7,12 +7,9 @@ export interface MyProfile {
   academy_name: string | null;
   director_name: string | null;
   name: string | null;
+  contact: string | null;
+  email: string | null;
   active: boolean;
-}
-
-interface SignUpMeta {
-  academyName?: string;
-  directorName?: string;
 }
 
 interface AuthContextValue {
@@ -22,16 +19,12 @@ interface AuthContextValue {
   user: User | null;
   isAdmin: boolean;
   profile: MyProfile | null;
+  /** 필수 프로필(학원명·원장·연락처) 입력 완료 여부 — 미완료면 온보딩 */
+  profileComplete: boolean;
   /** 로그인 사용자가 관리자에 의해 비활성화된 경우 true */
   blocked: boolean;
   refreshProfile: () => void;
   signInWithGoogle: () => Promise<{ error?: string }>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error?: string }>;
-  signUpWithEmail: (
-    email: string,
-    password: string,
-    meta?: SignUpMeta,
-  ) => Promise<{ error?: string; info?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -87,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     supabase
       .from('profiles')
-      .select('academy_name, director_name, name, active')
+      .select('academy_name, director_name, name, contact, email, active')
       .eq('id', session.user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -99,9 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 academy_name: data.academy_name ?? null,
                 director_name: data.director_name ?? null,
                 name: data.name ?? null,
+                contact: data.contact ?? null,
+                email: data.email ?? null,
                 active: data.active !== false,
               }
-            : { academy_name: null, director_name: null, name: null, active: true },
+            : { academy_name: null, director_name: null, name: null, contact: null, email: null, active: true },
         );
       });
     return () => {
@@ -118,6 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAdmin,
       profile,
+      profileComplete: Boolean(
+        profile && profile.academy_name && profile.director_name && profile.contact,
+      ),
       blocked: Boolean(user && profile && profile.active === false),
       refreshProfile: () => setProfileNonce((n) => n + 1),
       async signInWithGoogle() {
@@ -127,37 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           options: { redirectTo: redirectTo() },
         });
         return error ? { error: error.message } : {};
-      },
-      async signInWithEmail(email, password) {
-        if (!supabase) return { error: 'Supabase 설정이 필요합니다.' };
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        return error ? { error: error.message } : {};
-      },
-      async signUpWithEmail(email, password, meta) {
-        if (!supabase) return { error: 'Supabase 설정이 필요합니다.' };
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectTo(),
-            // 가입 시 학원명·원장 성함을 메타에 담아두고, 세션이 잡히면 프로필에 반영.
-            data: { academy_name: meta?.academyName ?? null, director_name: meta?.directorName ?? null },
-          },
-        });
-        if (error) return { error: error.message };
-        // 즉시 세션이 있으면(이메일 확인 불필요 설정) 프로필에 학원 정보 upsert.
-        if (data.session && (meta?.academyName || meta?.directorName)) {
-          await supabase.from('profiles').upsert(
-            {
-              id: data.session.user.id,
-              academy_name: meta?.academyName ?? null,
-              director_name: meta?.directorName ?? null,
-            },
-            { onConflict: 'id' },
-          );
-        }
-        if (!data.session) return { info: '확인 메일을 보냈습니다. 메일의 링크로 가입을 완료해 주세요.' };
-        return {};
       },
       async signOut() {
         if (supabase) await supabase.auth.signOut();
