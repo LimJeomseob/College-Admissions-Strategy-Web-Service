@@ -1,7 +1,9 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Hero } from '../components/ui/Hero';
 import { Section } from '../components/ui/Section';
 import { Card } from '../components/ui/Card';
-import { LinkButton } from '../components/ui/Button';
+import { Button, LinkButton } from '../components/ui/Button';
 import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { HomeStepWheel } from '../components/HomeStepWheel';
 import { useSession } from '../state/SessionContext';
@@ -35,6 +37,12 @@ const FEATURES = [
 export function HomePage() {
   useDocumentTitle();
   const { desiredMajor, setDesiredMajor } = useSession();
+  const [major, setMajor] = useState(desiredMajor);
+  const navigate = useNavigate();
+  const startWithMajor = () => {
+    setDesiredMajor(major.trim());
+    navigate('/tool');
+  };
   return (
     <main>
       <Hero
@@ -42,7 +50,10 @@ export function HomePage() {
         actions={
           <div className="home-start">
             <p className="home-start-label">희망 학과를 입력하고 진단을 시작합시다</p>
-            <DesiredMajorInput value={desiredMajor} onChange={setDesiredMajor} />
+            <DesiredMajorInput value={major} onChange={setMajor} />
+            <Button variant="primary" className="home-start-btn" onClick={startWithMajor}>
+              희망학과 적용하고 진단 시작
+            </Button>
           </div>
         }
       />

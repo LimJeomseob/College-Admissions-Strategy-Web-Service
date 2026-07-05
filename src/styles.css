@@ -406,6 +406,7 @@ button.sm { font-size: .78rem; padding: 3px 10px; }
 /* 홈 진입 — 희망학과 입력 + CTA */
 .home-start { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 440px; margin: 0 auto; }
 .home-start-label { margin: 0; font-weight: 800; font-size: 1.1rem; color: var(--ink); }
+.home-start-btn { width: 100%; }
 .home-start .desired-major { width: 100%; margin: 0; }
 .home-start .desired-major label { align-items: center; text-align: center; gap: 6px; }
 .home-start .desired-major input { max-width: none; width: 100%; text-align: center; padding: 10px 12px; }
