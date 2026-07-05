@@ -126,7 +126,7 @@ export function AdminPage() {
   };
 
   return (
-    <main className="container auth-page">
+    <main className="container">
       <h1 className="admin-page-title">관리자</h1>
 
       <nav className="tabbar" role="tablist">
