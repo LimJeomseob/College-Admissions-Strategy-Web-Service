@@ -67,7 +67,6 @@ export function HomePage() {
 
       <Section
         title="지금 바로 분석해 보세요"
-        subtitle="성적만 입력하면 됩니다. 데이터는 서버에 저장되지 않는 세션 입력입니다."
         soft
       >
         <LinkButton to="/tool" variant="primary">전략 도구로 이동</LinkButton>
