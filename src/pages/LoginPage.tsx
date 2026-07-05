@@ -10,6 +10,8 @@ export function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [academyName, setAcademyName] = useState('');
+  const [directorName, setDirectorName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,7 +36,7 @@ export function LoginPage() {
     const res: { error?: string; info?: string } =
       mode === 'login'
         ? await signInWithEmail(email, password)
-        : await signUpWithEmail(email, password);
+        : await signUpWithEmail(email, password, { academyName, directorName });
     setBusy(false);
     if (res.error) setError(res.error);
     else if (res.info) setInfo(res.info);
@@ -59,6 +61,18 @@ export function LoginPage() {
       <div className="auth-divider">또는 이메일</div>
 
       <form className="auth-form" onSubmit={submitEmail}>
+        {mode === 'signup' && (
+          <>
+            <label>
+              학원명
+              <input value={academyName} onChange={(e) => setAcademyName(e.target.value)} placeholder="예: 클럽하와이" autoComplete="organization" />
+            </label>
+            <label>
+              원장 성함
+              <input value={directorName} onChange={(e) => setDirectorName(e.target.value)} placeholder="예: 홍길동" autoComplete="name" />
+            </label>
+          </>
+        )}
         <label>
           이메일
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />

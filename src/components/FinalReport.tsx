@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComboAverages, FinalReportData, JonghapPick, Track } from '../types';
 import { aiFinalReport, type ReportPayload } from '../data/aiGuidance';
 import { recommendFor, type JonghapMap } from '../data/loadJonghapSubjects';
+import { ReportContent } from './ReportContent';
+import { saveReport } from '../data/reports';
+import { useAuth } from '../auth/AuthProvider';
 
 // REQ-50 최종 보고서 — 선택 대학 + 교과/종합 구분 + 선택과목 + 조언을 AI가 자동 생성.
 // 진입 시 자동 호출(세션 캐시). 인쇄(PDF 저장)·마크다운 다운로드 지원.
@@ -19,12 +22,6 @@ interface Props {
   onComplete?: () => void;
 }
 
-const BADGE_CLASS: Record<string, string> = {
-  교과: 'rep-type-gyo',
-  종합: 'rep-type-jong',
-  '교과·종합': 'rep-type-both',
-};
-
 export function FinalReport({
   est9,
   refRange,
@@ -40,7 +37,9 @@ export function FinalReport({
   const [report, setReport] = useState<FinalReportData | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [errMsg, setErrMsg] = useState('');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const completedRef = useRef(false);
+  const { user } = useAuth();
 
   // 선택된 종합전형 학과의 권장과목(DB에 있으면)을 함께 전달.
   const payload = useMemo<ReportPayload>(() => {
@@ -65,6 +64,7 @@ export function FinalReport({
     if (selectedUnivs.length === 0) return;
     let active = true;
     setStatus('loading');
+    setSaveState('idle');
     aiFinalReport(payload)
       .then((data) => {
         if (!active) return;
@@ -85,6 +85,20 @@ export function FinalReport({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload]);
+
+  const saveCurrent = async () => {
+    if (!report || !user) return;
+    setSaveState('saving');
+    try {
+      await saveReport(user.id, desiredMajor ? `${desiredMajor} 대입 보고서` : '대입 전략 보고서', {
+        report,
+        meta: { est9, refRange, desiredMajor, track },
+      });
+      setSaveState('saved');
+    } catch {
+      setSaveState('error');
+    }
+  };
 
   const downloadMd = () => {
     if (!report) return;
@@ -127,6 +141,16 @@ export function FinalReport({
       <div className="report-actions no-print">
         <h2>최종 보고서</h2>
         <div className="report-btns">
+          {user && (
+            <button
+              type="button"
+              className="primary"
+              onClick={saveCurrent}
+              disabled={!report || saveState === 'saving' || saveState === 'saved'}
+            >
+              {saveState === 'saved' ? '✓ 저장됨' : saveState === 'saving' ? '저장 중…' : '💾 마이페이지에 저장'}
+            </button>
+          )}
           <button type="button" className="secondary" onClick={() => window.print()} disabled={!report}>
             🖨 인쇄·PDF 저장
           </button>
@@ -146,48 +170,9 @@ export function FinalReport({
         <p className="warn">보고서를 생성하지 못했습니다: {errMsg}</p>
       )}
 
-      {report && (
-        <div className="report-body">
-          <section className="report-section">
-            <h3>진단 요약</h3>
-            <p>{report.summary}</p>
-          </section>
+      {saveState === 'error' && <p className="warn no-print">보고서 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.</p>}
 
-          <section className="report-section">
-            <h3>지원 대학 · 전형 구분</h3>
-            <div className="report-univs">
-              {report.universities.map((u, i) => (
-                <article key={i} className="report-univ">
-                  <header>
-                    <strong>{u.name}</strong>
-                    <span className={`rep-type-badge ${BADGE_CLASS[u.type] ?? ''}`}>{u.type}</span>
-                  </header>
-                  {u.note && <p className="report-note">{u.note}</p>}
-                  {u.subjects.length > 0 && (
-                    <p className="report-subjects">
-                      <span className="muted">권장 선택과목: </span>
-                      {u.subjects.map((s, j) => (
-                        <span key={j} className="subject-chip chip-rec">{s}</span>
-                      ))}
-                    </p>
-                  )}
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="report-section">
-            <h3>종합 조언</h3>
-            <ul className="report-advice">
-              {report.advice.map((a, i) => (
-                <li key={i}>{a}</li>
-              ))}
-            </ul>
-          </section>
-
-          <p className="muted report-foot">본 보고서는 AI가 자동 생성한 참고 자료이며, 실제 지원은 대학별 최신 요강을 확인하세요.</p>
-        </div>
-      )}
+      {report && <ReportContent report={report} />}
     </div>
   );
 }
