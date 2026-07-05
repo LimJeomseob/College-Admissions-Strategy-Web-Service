@@ -26,12 +26,16 @@ interface AdminRow {
 }
 
 interface StudentRow {
+  id: string;
+  academy_name: string | null;
+  director_name: string | null;
   name: string | null;
   grade: string | null;
   contact: string | null;
   desired_major: string | null;
   track: string | null;
   consent_at: string | null;
+  active: boolean | null;
   combo_averages: Record<string, number | null> | null;
   grades_updated_at: string | null;
 }
@@ -68,11 +72,20 @@ export function AdminPage() {
     if (!supabase) return;
     const { data, error } = await supabase
       .from('profiles')
-      .select('name, grade, contact, desired_major, track, consent_at, combo_averages, grades_updated_at')
+      .select('id, academy_name, director_name, name, grade, contact, desired_major, track, consent_at, active, combo_averages, grades_updated_at')
       .order('grades_updated_at', { ascending: false, nullsFirst: false });
     if (error) setError(error.message);
     else setStudents((data as StudentRow[]) ?? []);
     setStudentsLoading(false);
+  };
+
+  // REQ-63: 계정 활성/비활성 토글. active=false 계정은 전략 도구 사용이 차단된다.
+  const toggleActive = async (row: StudentRow) => {
+    if (!supabase) return;
+    const next = !(row.active !== false);
+    const { error } = await supabase.from('profiles').update({ active: next }).eq('id', row.id);
+    if (error) setError(error.message);
+    else setStudents((rs) => rs.map((r) => (r.id === row.id ? { ...r, active: next } : r)));
   };
 
   useEffect(() => {
@@ -199,35 +212,50 @@ export function AdminPage() {
           <table className="result-table">
             <thead>
               <tr>
+                <th>학원</th>
+                <th>원장</th>
                 <th>이름</th>
                 <th>학년</th>
                 <th>희망학과</th>
                 <th>계열</th>
                 <th>연락처</th>
-                <th>전과목</th>
                 <th>국수영사과한</th>
                 <th>국수영사</th>
                 <th>국수영과</th>
                 <th>동의</th>
                 <th>최종 저장</th>
+                <th>상태</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s, i) => (
-                <tr key={i}>
-                  <td>{s.name || '—'}</td>
-                  <td>{s.grade || '—'}</td>
-                  <td>{s.desired_major || '—'}</td>
-                  <td>{s.track || '—'}</td>
-                  <td>{s.contact || '—'}</td>
-                  <td>{fmtAvg(s.combo_averages?.['전과목'])}</td>
-                  <td>{fmtAvg(s.combo_averages?.['국수영사과'])}</td>
-                  <td>{fmtAvg(s.combo_averages?.['국수영사'])}</td>
-                  <td>{fmtAvg(s.combo_averages?.['국수영과'])}</td>
-                  <td>{s.consent_at ? '✓' : '—'}</td>
-                  <td>{s.grades_updated_at ? new Date(s.grades_updated_at).toLocaleDateString('ko-KR') : '—'}</td>
-                </tr>
-              ))}
+              {students.map((s) => {
+                const isActive = s.active !== false;
+                return (
+                  <tr key={s.id} className={isActive ? undefined : 'row-inactive'}>
+                    <td>{s.academy_name || '—'}</td>
+                    <td>{s.director_name || '—'}</td>
+                    <td>{s.name || '—'}</td>
+                    <td>{s.grade || '—'}</td>
+                    <td>{s.desired_major || '—'}</td>
+                    <td>{s.track || '—'}</td>
+                    <td>{s.contact || '—'}</td>
+                    <td>{fmtAvg(s.combo_averages?.['국수영사과'])}</td>
+                    <td>{fmtAvg(s.combo_averages?.['국수영사'])}</td>
+                    <td>{fmtAvg(s.combo_averages?.['국수영과'])}</td>
+                    <td>{s.consent_at ? '✓' : '—'}</td>
+                    <td>{s.grades_updated_at ? new Date(s.grades_updated_at).toLocaleDateString('ko-KR') : '—'}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className={`account-toggle${isActive ? ' on' : ' off'}`}
+                        onClick={() => toggleActive(s)}
+                      >
+                        {isActive ? '활성' : '비활성'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

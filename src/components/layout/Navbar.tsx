@@ -39,6 +39,9 @@ export function Navbar() {
           )}
           {configured && user && (
             <>
+              <NavLink to="/mypage" className={({ isActive }) => `pill pill-black ${isActive ? 'active' : ''}`.trim()}>
+                👤 마이페이지
+              </NavLink>
               <Link to="/tool" className="pill pill-green">전략 도구</Link>
               <button
                 type="button"
