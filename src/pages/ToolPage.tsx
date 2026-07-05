@@ -62,6 +62,7 @@ export function ToolPage() {
   const [deptMap, setDeptMap] = useState<Record<string, DeptRow[]>>({});
   const [deptLoading, setDeptLoading] = useState(false);
   const [jonghapPicks, setJonghapPicks] = useState<JonghapPick[]>([]);
+  const [gyoPicks, setGyoPicks] = useState<JonghapPick[]>([]);
   const [jonghapMap, setJonghapMap] = useState<JonghapMap>({});
   const [jonghapLoading, setJonghapLoading] = useState(false);
 
@@ -213,6 +214,12 @@ export function ToolPage() {
       prev.some((p) => pickKey(p) === pickKey(pick)) ? prev.filter((p) => pickKey(p) !== pickKey(pick)) : [...prev, pick],
     );
 
+  const gyoKeys = useMemo(() => new Set(gyoPicks.map(pickKey)), [gyoPicks]);
+  const toggleGyo = (pick: JonghapPick) =>
+    setGyoPicks((prev) =>
+      prev.some((p) => pickKey(p) === pickKey(pick)) ? prev.filter((p) => pickKey(p) !== pickKey(pick)) : [...prev, pick],
+    );
+
   // 선형 스텝: 현재 단계 인덱스. 앞 단계로는 자유롭게, 다음 단계로는 '다음' 버튼으로만.
   const currentIndex = TABS.findIndex((t) => t.id === activeTab);
 
@@ -300,6 +307,8 @@ export function ToolPage() {
             loading={deptLoading}
             selectedJonghap={jonghapKeys}
             onToggleJonghap={toggleJonghap}
+            selectedGyo={gyoKeys}
+            onToggleGyo={toggleGyo}
           />
         ) : (
           <NeedGrades />
@@ -329,6 +338,7 @@ export function ToolPage() {
             selectedUnivs={selectedUnivs}
             jonghapPicks={jonghapPicks}
             jonghapMap={jonghapMap}
+            gyoPicks={gyoPicks}
             deptMap={deptMap}
             triageMessage={result.triageResult.message}
             onComplete={() => logUsage('step_complete', 'report', undefined, { once: true })}

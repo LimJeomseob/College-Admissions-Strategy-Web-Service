@@ -80,30 +80,22 @@ export interface GyoBandRow {
 }
 const BAND_RANK: Record<string, number> = { 안정: 0, 적정: 1, 소신: 2 };
 
-/** 선택 대학의 교과전형 학과를 최신 연도 기준으로 밴드 판정해 수집·정렬. */
-export function collectGyoBands(
+/** 선택(클릭)한 교과전형 항목만 밴드 판정해 수집 (최종 보고서 표용). */
+export function gyoBandsForPicks(
   map: DeptMap,
-  selectedUnivs: string[],
-  desired: string,
+  picks: { univName: string; type: string; detail: string; dept: string }[],
   est9: number,
 ): GyoBandRow[] {
   const out: GyoBandRow[] = [];
-  for (const univ of selectedUnivs) {
-    const depts = deptsFor(map, univ).filter(
-      (d) => (d.type ?? '').includes('교과') && deptMatches(d.dept, desired),
+  for (const p of picks) {
+    const rows = deptsFor(map, p.univName).filter(
+      (d) => d.type === p.type && (d.detail ?? '') === (p.detail ?? '') && d.dept === p.dept,
     );
-    // type|detail|dept 기준 최신 연도 1건만.
-    const latest = new Map<string, DeptRow>();
-    for (const d of depts) {
-      const k = `${d.type}|${d.detail}|${d.dept}`;
-      const prev = latest.get(k);
-      if (!prev || (d.year ?? 0) >= (prev.year ?? 0)) latest.set(k, d);
-    }
-    for (const d of latest.values()) {
-      const band = bandOf(est9, d.g50, d.g70);
-      if (band === '—') continue;
-      out.push({ band, univName: univ, dept: d.dept, type: d.type, g50: d.g50, g70: d.g70 });
-    }
+    if (rows.length === 0) continue;
+    const latest = rows.reduce((a, b) => ((b.year ?? 0) >= (a.year ?? 0) ? b : a));
+    const band = bandOf(est9, latest.g50, latest.g70);
+    if (band === '—') continue;
+    out.push({ band, univName: p.univName, dept: p.dept, type: p.type, g50: latest.g50, g70: latest.g70 });
   }
   out.sort(
     (a, b) =>

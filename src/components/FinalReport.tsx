@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComboAverages, DeptRow, FinalReportData, JonghapPick, Track } from '../types';
 import { aiFinalReport, type ReportPayload } from '../data/aiGuidance';
 import { recommendFor, type JonghapMap } from '../data/loadJonghapSubjects';
-import { collectGyoBands } from '../data/loadDeptAdmissions';
+import { gyoBandsForPicks } from '../data/loadDeptAdmissions';
 import { ReportContent } from './ReportContent';
 import { saveReport } from '../data/reports';
 import { useAuth } from '../auth/AuthProvider';
@@ -19,6 +19,7 @@ interface Props {
   selectedUnivs: string[];
   jonghapPicks: JonghapPick[];
   jonghapMap: JonghapMap;
+  gyoPicks: JonghapPick[];
   deptMap: Record<string, DeptRow[]>;
   triageMessage: string;
   onComplete?: () => void;
@@ -33,6 +34,7 @@ export function FinalReport({
   selectedUnivs,
   jonghapPicks,
   jonghapMap,
+  gyoPicks,
   deptMap,
   triageMessage,
   onComplete,
@@ -44,10 +46,10 @@ export function FinalReport({
   const completedRef = useRef(false);
   const { user } = useAuth();
 
-  // 교과전형 지원 대학·모집단위를 안정/적정/소신으로 (4단계 밴드와 동일 계산).
+  // 4단계에서 선택(클릭)한 교과전형만 안정/적정/소신으로 (4단계 밴드와 동일 계산).
   const gyo = useMemo(
-    () => collectGyoBands(deptMap, selectedUnivs, desiredMajor, est9),
-    [deptMap, selectedUnivs, desiredMajor, est9],
+    () => gyoBandsForPicks(deptMap, gyoPicks, est9),
+    [deptMap, gyoPicks, est9],
   );
 
   // 선택된 종합전형 학과의 권장과목(DB에 있으면)을 함께 전달.
