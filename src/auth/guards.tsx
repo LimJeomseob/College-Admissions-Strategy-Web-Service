@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
+import { ProfileSetup } from '../components/ProfileSetup';
 
 // 라우트 가드 — 인증/관리자 권한이 없으면 적절한 경로로 보낸다.
 // (RLS가 1차 방어선이고, 가드는 UX/오접근 차단용 2차선)
@@ -18,6 +19,15 @@ export function RequireActive({ children }: { children: ReactNode }) {
   const { loading, blocked } = useAuth();
   if (loading) return <main className="container"><p>확인 중…</p></main>;
   if (blocked) return <AccountBlocked />;
+  return <>{children}</>;
+}
+
+// Google 인증 후 필수 프로필(학원명·원장·연락처) 미완료 사용자는 온보딩 폼으로.
+// 게스트(비로그인)는 통과 — 전략 도구는 로그인 없이도 사용 가능.
+export function RequireProfile({ children }: { children: ReactNode }) {
+  const { loading, user, profileComplete } = useAuth();
+  if (loading) return <main className="container"><p>확인 중…</p></main>;
+  if (user && !profileComplete) return <ProfileSetup />;
   return <>{children}</>;
 }
 

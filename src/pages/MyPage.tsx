@@ -95,6 +95,7 @@ export function MyPage() {
     const { error } = await supabase.from('profiles').upsert(
       {
         id: user.id,
+        email: user.email ?? null,
         academy_name: form.academy_name.trim() || null,
         director_name: form.director_name.trim() || null,
         name: form.name.trim() || null,
@@ -139,6 +140,10 @@ export function MyPage() {
             <p className="subtitle muted">학원명·원장 성함으로 계정을 식별합니다. 희망학과·계열은 전략 도구에 반영됩니다.</p>
 
             <div className="mypage-grid">
+              <label>
+                이메일
+                <input value={user.email ?? ''} readOnly disabled />
+              </label>
               <label>
                 학원명
                 <input value={form.academy_name} onChange={(e) => set({ academy_name: e.target.value })} placeholder="예: 클럽하와이" />
