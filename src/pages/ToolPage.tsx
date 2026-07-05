@@ -223,7 +223,7 @@ export function ToolPage() {
   return (
     <main className="container">
       <header>
-        <h1>5등급제 → 9등급 입결 기반 대입 전략</h1>
+        <h1>5등급 → 9등급</h1>
         <p className="subtitle">
           성적 입력 한 번으로 지원 가능 대학·학과와 교과전형 준비전략을 안내합니다.
           {data.meta.source === 'mock' && <span className="badge">샘플 데이터</span>}
