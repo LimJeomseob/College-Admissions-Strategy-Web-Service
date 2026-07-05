@@ -6,9 +6,8 @@ import type { UsageEvent } from '../../types';
 
 interface Account {
   id: string;
-  name: string | null;
-  grade: string | null;
-  contact: string | null;
+  academy_name: string | null;
+  director_name: string | null;
 }
 
 const EVENT_LABEL: Record<string, string> = {
@@ -41,8 +40,8 @@ export function AdminUsageHistory() {
     // 프로필 목록 + 전체 사용 횟수(계정별) 집계 — usage_events.user_id 단일 컬럼만 조회.
     supabase
       .from('profiles')
-      .select('id, name, grade, contact')
-      .order('name', { ascending: true })
+      .select('id, academy_name, director_name')
+      .order('academy_name', { ascending: true })
       .then(({ data, error }) => {
         if (error) setError(error.message);
         else setAccounts((data as Account[]) ?? []);
@@ -107,7 +106,7 @@ export function AdminUsageHistory() {
                   className={`usage-account${selected === a.id ? ' active' : ''}`}
                   onClick={() => setSelected(a.id)}
                 >
-                  <span>{a.name || '(이름 없음)'}{a.grade ? ` · ${a.grade}` : ''}</span>
+                  <span>{a.academy_name || '(학원 미입력)'}{a.director_name ? ` · ${a.director_name} 원장` : ''}</span>
                   <span className="usage-count-badge">{countByUser[a.id] ?? 0}</span>
                 </button>
               </li>
