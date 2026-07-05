@@ -2,9 +2,7 @@ import { Hero } from '../components/ui/Hero';
 import { Section } from '../components/ui/Section';
 import { Card } from '../components/ui/Card';
 import { LinkButton } from '../components/ui/Button';
-import { DesiredMajorInput } from '../components/DesiredMajorInput';
 import { HomeStepWheel } from '../components/HomeStepWheel';
-import { useSession } from '../state/SessionContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // 랜딩 페이지 — Hero + 5단계 전략 흐름(원형) + 주요 기능 카드 + 도구 CTA.
@@ -34,17 +32,11 @@ const FEATURES = [
 
 export function HomePage() {
   useDocumentTitle();
-  const { desiredMajor, setDesiredMajor } = useSession();
   return (
     <main>
       <Hero
         title={<>5등급제 내신으로 그리는<br className="br-md" />데이터 기반 대입 전략</>}
-        actions={
-          <div className="home-start">
-            <p className="home-start-label">희망 학과를 입력하고 진단을 시작합시다</p>
-            <DesiredMajorInput value={desiredMajor} onChange={setDesiredMajor} />
-          </div>
-        }
+        actions={<LinkButton to="/tool" variant="primary">전략 도구 시작하기</LinkButton>}
       />
 
       <Section
