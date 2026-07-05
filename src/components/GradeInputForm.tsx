@@ -13,6 +13,8 @@ interface Props {
   track: Track;
   onTrackChange: (t: Track) => void;
   onSubmit: (rows: SubjectInput[]) => void;
+  /** REQ-70: 일일 제한 초과 시 분석 버튼 비활성 */
+  disabled?: boolean;
 }
 
 interface Row {
@@ -31,7 +33,7 @@ const toRow = (s: SubjectInput): Row => ({
   credits: String(s.credits),
 });
 
-export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
+export function GradeInputForm({ track, onTrackChange, onSubmit, disabled }: Props) {
   const [rows, setRows] = useState<Row[]>([
     { category: '국어', name: '국어', grade5: '1', credits: '4' },
     { category: '수학', name: '수학', grade5: '2', credits: '4' },
@@ -197,7 +199,7 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
       </table>
       <div className="form-actions">
         <button onClick={() => setRows((rs) => [...rs, emptyRow()])}>+ 과목 추가</button>
-        <button className="primary" onClick={submit}>지원 가능권 분석</button>
+        <button className="primary" onClick={submit} disabled={disabled}>지원 가능권 분석</button>
       </div>
     </section>
   );

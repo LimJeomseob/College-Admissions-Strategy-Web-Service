@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { DISCLAIMER } from '../config';
+import { DISCLAIMER, DAILY_ANALYSIS_LIMIT } from '../config';
+import { countTodayAnalysis, dailyLimitEnabled } from '../data/dailyLimit';
 import { loadDataLayer } from '../data/loadDataLayer';
 import { loadDeptAdmissions } from '../data/loadDeptAdmissions';
 import {
@@ -65,7 +66,24 @@ export function ToolPage() {
   const [jonghapMap, setJonghapMap] = useState<JonghapMap>({});
   const [jonghapLoading, setJonghapLoading] = useState(false);
 
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+
+  // REQ-70: 일일 분석 제한 — 오늘(KST) 사용 횟수. 관리자·게스트는 미적용.
+  const [dailyUsed, setDailyUsed] = useState<number | null>(null);
+  const limitOn = dailyLimitEnabled() && !!user && !isAdmin;
+  const limitReached = limitOn && dailyUsed != null && dailyUsed >= DAILY_ANALYSIS_LIMIT;
+
+  useEffect(() => {
+    if (!limitOn || !user) {
+      setDailyUsed(null);
+      return;
+    }
+    let active = true;
+    countTodayAnalysis(user.id).then((n) => active && setDailyUsed(n));
+    return () => {
+      active = false;
+    };
+  }, [limitOn, user]);
 
   // 정적 dataLayer 로드 후, Supabase 단계 DB가 있으면 2단계(환산)·3단계(합격선)를 치환.
   useEffect(() => {
@@ -229,14 +247,24 @@ export function ToolPage() {
 
       {activeTab === 'input' && (
         <section>
+          {limitOn && dailyUsed != null && (
+            <p className={limitReached ? 'warn' : 'upload-info'}>
+              {limitReached
+                ? `오늘 분석 가능 횟수(${DAILY_ANALYSIS_LIMIT}회)를 모두 사용했습니다. 자정 이후 다시 이용할 수 있습니다.`
+                : `오늘 남은 분석 횟수: ${Math.max(0, DAILY_ANALYSIS_LIMIT - dailyUsed)} / ${DAILY_ANALYSIS_LIMIT}회`}
+            </p>
+          )}
           <GradeInputForm
             track={track}
             onTrackChange={setTrack}
+            disabled={limitReached}
             onSubmit={(rows) => {
+              if (limitReached) return;
               setSubjects(rows);
               setSubmitted(true);
               logUsage('analysis_run', 'input', { subjectCount: rows.length });
               logUsage('step_complete', 'input', undefined, { once: true });
+              if (limitOn) setDailyUsed((n) => (n ?? 0) + 1);
               goTab('convert');
             }}
           />

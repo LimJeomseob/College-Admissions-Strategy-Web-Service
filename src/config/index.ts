@@ -24,6 +24,13 @@ export const USE_SUPABASE_DATA = true;
 /** 3단계 매칭 여유분: 학생 환산등급 + 여유분 까지 지원가능권으로 포함 */
 export const MATCH_MARGIN = 0.5;
 
+/**
+ * REQ-70: 1계정 1일 분석 실행(성적 제출) 제한 횟수. 0 이하이면 무제한.
+ * 별도 자정 리셋 잡 없이 'KST 자정 이후 analysis_run 이벤트 수'로 카운트 → 자정에 자동 초기화.
+ * 관리자·비로그인(게스트)에는 적용하지 않는다.
+ */
+export const DAILY_ANALYSIS_LIMIT = 5;
+
 /** 안정/적정/소신 구간 경계 (입결 - 학생등급 = gap) */
 export const RISK_BANDS = {
   /** gap >= 안정 → 입결보다 충분히 우수 */
