@@ -117,7 +117,7 @@ export function ToolPage() {
   const result = useMemo(() => {
     if (!data || !submitted) return null;
     const averages = computeComboAverages(subjects);
-    const refAvg = averages['전과목'] ?? averages['국수영사과'];
+    const refAvg = averages['국수영사과'] ?? averages['전과목'];
     if (refAvg == null) return null;
     const conv = convert(data.conversion, refAvg);
     const triageResult = triage(conv.est9);

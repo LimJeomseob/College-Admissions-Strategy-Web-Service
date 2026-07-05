@@ -105,7 +105,7 @@ button.primary:hover { background: var(--green-600); border-color: var(--green-6
 button.secondary { background: var(--surface, #fff); color: var(--green-600); border-color: var(--green-500); border-radius: var(--radius-pill); font-weight: 700; padding: 8px 18px; }
 button.secondary:hover { background: var(--bg-soft); }
 
-.avg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.avg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin-bottom: 12px; }
 .avg-cell { background: var(--bg-soft); border-radius: 8px; padding: 8px; text-align: center; }
 .avg-label { display: block; font-size: .8rem; color: var(--muted); }
 .avg-value { font-size: 1.3rem; font-weight: 700; }

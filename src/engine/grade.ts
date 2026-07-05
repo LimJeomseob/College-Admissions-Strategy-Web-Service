@@ -6,7 +6,8 @@ import type { ComboAverages, SubjectCombo, SubjectInput } from '../types';
 
 /** 각 조합에 포함되는 교과군 */
 const COMBO_CATEGORIES: Record<SubjectCombo, SubjectInput['category'][]> = {
-  전과목: ['국어', '수학', '영어', '사회', '과학', '기타'],
+  // REQ-06: 입력 범위를 국·수·영·사/과로 축소 → '전과목'은 '국수영사과'와 동일(기타 제외).
+  전과목: ['국어', '수학', '영어', '사회', '과학'],
   국수영사과: ['국어', '수학', '영어', '사회', '과학'],
   국수영사: ['국어', '수학', '영어', '사회'],
   국수영과: ['국어', '수학', '영어', '과학'],
