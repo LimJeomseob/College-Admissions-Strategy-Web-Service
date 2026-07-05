@@ -120,6 +120,18 @@ export function AdminPage() {
       setEditAccId(null);
     }
   };
+  // 계정 삭제 — 프로필 행 제거(구글 로그인 계정 자체는 유지, 재로그인 시 정보 재입력).
+  const deleteAccount = async (row: StudentRow) => {
+    if (!supabase) return;
+    if (row.id === user?.id) {
+      setError('본인 계정은 삭제할 수 없습니다.');
+      return;
+    }
+    if (!window.confirm(`${row.academy_name || '이 계정'} 정보를 삭제할까요? 사용자는 다음 로그인 시 정보를 다시 입력해야 합니다.`)) return;
+    const { error } = await supabase.from('profiles').delete().eq('id', row.id);
+    if (error) setError(error.message);
+    else setStudents((rs) => rs.filter((r) => r.id !== row.id));
+  };
 
   useEffect(() => {
     load();
@@ -299,6 +311,7 @@ export function AdminPage() {
                     </td>
                     <td className="db-row-actions">
                       <button onClick={() => startEditAcc(s)}>수정</button>
+                      <button className="btn-danger" onClick={() => deleteAccount(s)}>삭제</button>
                     </td>
                   </tr>
                 );
