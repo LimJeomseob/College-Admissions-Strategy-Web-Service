@@ -134,6 +134,31 @@ input, select { padding: 6px 10px; border: 1px solid var(--line); border-radius:
 .upload-area { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; padding: 12px; background: var(--surface-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); transition: border-color .15s, background .15s; }
 .upload-area.drag-over { border-color: var(--navy-500, #5b8f73); border-style: solid; background: var(--navy-50, #eaf3ee); }
 .upload-label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
+
+/* 성적표 드래그앤드롭 드롭존 */
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 28px 16px; margin-bottom: 12px; text-align: center; cursor: pointer;
+  background: var(--surface-soft); border: 2px dashed var(--border); border-radius: var(--radius-md, 12px);
+  transition: border-color .15s, background .15s, transform .05s;
+}
+.dropzone:hover { border-color: var(--green-500, #2e9e5b); }
+.dropzone.drag-over { border-color: var(--green-500, #2e9e5b); border-style: solid; background: var(--navy-50, #eaf3ee); }
+.dropzone.busy { opacity: .6; pointer-events: none; }
+.dropzone:focus-visible { outline: 2px solid var(--green-500, #2e9e5b); outline-offset: 3px; }
+.dropzone-icon { font-size: 1.9rem; line-height: 1; }
+.dropzone-title { margin: 2px 0 0; font-weight: 700; color: var(--ink); }
+.dropzone-sub { margin: 0; font-size: .84rem; }
+.dropzone-btn { margin-top: 8px; }
+.upload-files { margin: 0 0 12px; }
+.upload-files-label { display: block; font-size: .8rem; margin-bottom: 6px; }
+.file-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.file-chip {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
+  font-size: .82rem; padding: 4px 12px; border-radius: 999px;
+  background: var(--navy-50, #eaf3ee); color: var(--navy-700, #2f6f4f); border: 1px solid var(--navy-500, #5b8f73);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .upload-info { font-size: .85rem; color: var(--stable); margin: 0 0 8px; }
 .upload-warn { list-style: none; margin: 0 0 12px; padding: 8px 12px; font-size: .8rem; }
 .upload-warn li { margin: 2px 0; }

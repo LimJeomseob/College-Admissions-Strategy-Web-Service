@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { SubjectInput, Track } from '../types';
 import { parseGradeFile, ParseError } from '../data/parseGradeFile';
 import { isImageFile, ocrGradeImage } from '../data/ocrGradeImage';
@@ -46,6 +46,8 @@ export function GradeInputForm({ track, onTrackChange, onSubmit, disabled }: Pro
   const [uploadInfo, setUploadInfo] = useState<string | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [fileNames, setFileNames] = useState<string[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { user } = useAuth();
 
@@ -58,6 +60,7 @@ export function GradeInputForm({ track, onTrackChange, onSubmit, disabled }: Pro
     setUploadError(null);
     setUploadWarnings([]);
     setUploadInfo(null);
+    setFileNames(files.map((f) => f.name));
     setOcrBusy(true);
 
     const acc: SubjectInput[] = [];
@@ -114,7 +117,17 @@ export function GradeInputForm({ track, onTrackChange, onSubmit, disabled }: Pro
       <h2>1단계 성적 입력</h2>
 
       <div
-        className={`upload-area${dragOver ? ' drag-over' : ''}`}
+        className={`dropzone${dragOver ? ' drag-over' : ''}${ocrBusy ? ' busy' : ''}`}
+        role="button"
+        tabIndex={0}
+        aria-label="성적표 파일 업로드 (클릭 또는 드래그앤드롭)"
+        onClick={() => !ocrBusy && fileRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (!ocrBusy) fileRef.current?.click();
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           if (!ocrBusy) setDragOver(true);
@@ -131,25 +144,39 @@ export function GradeInputForm({ track, onTrackChange, onSubmit, disabled }: Pro
           if (files.length > 0) void handleFiles(files);
         }}
       >
-        <label className="upload-label">
-          성적표 업로드 (이미지 캡쳐·csv·txt·xlsx, 여러 개 가능)
-          <input
-            type="file"
-            accept="image/*,.csv,.txt,.xlsx,.xls"
-            multiple
-            disabled={ocrBusy}
-            onChange={(e) => {
-              void handleFiles(Array.from(e.target.files ?? []));
-              e.target.value = ''; // 같은 파일 재선택 허용
-            }}
-          />
-        </label>
-        <p className="upload-hint muted">
-          {dragOver
-            ? '여기에 파일을 놓으세요.'
-            : `파일을 이 영역으로 끌어다 놓거나 위 버튼으로 선택하세요. 여러 파일을 한 번에 올리면 과목이 모두 합쳐집니다. 캡쳐 이미지도 자동 인식${user ? '' : ' (로그인 필요)'}.`}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,.csv,.txt,.xlsx,.xls"
+          multiple
+          hidden
+          disabled={ocrBusy}
+          onChange={(e) => {
+            void handleFiles(Array.from(e.target.files ?? []));
+            e.target.value = ''; // 같은 파일 재선택 허용
+          }}
+        />
+        <div className="dropzone-icon" aria-hidden>⬆️</div>
+        <p className="dropzone-title">{dragOver ? '여기에 파일을 놓으세요' : '성적표 파일을 여기로 끌어다 놓으세요'}</p>
+        <p className="dropzone-sub muted">
+          또는 클릭하여 선택 · 이미지 캡쳐·csv·txt·xlsx, 여러 개 가능{user ? '' : ' (이미지 인식은 로그인 필요)'}
         </p>
+        <button type="button" className="secondary dropzone-btn" disabled={ocrBusy} onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}>
+          파일 선택
+        </button>
       </div>
+
+      {fileNames.length > 0 && (
+        <div className="upload-files">
+          <span className="upload-files-label muted">업로드한 파일 ({fileNames.length})</span>
+          <ul className="file-chips">
+            {fileNames.map((n, i) => (
+              <li key={i} className="file-chip">📄 {n}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {ocrBusy && <p className="upload-info">이미지를 인식하는 중입니다… 잠시만 기다려 주세요.</p>}
       {uploadInfo && <p className="upload-info">{uploadInfo}</p>}
       {uploadError && <p className="error">{uploadError}</p>}
