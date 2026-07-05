@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ComboAverages, FinalReportData, JonghapPick, Track } from '../types';
+import type { ComboAverages, DeptRow, FinalReportData, JonghapPick, Track } from '../types';
 import { aiFinalReport, type ReportPayload } from '../data/aiGuidance';
 import { recommendFor, type JonghapMap } from '../data/loadJonghapSubjects';
+import { collectGyoBands } from '../data/loadDeptAdmissions';
 import { ReportContent } from './ReportContent';
 import { saveReport } from '../data/reports';
 import { useAuth } from '../auth/AuthProvider';
@@ -18,6 +19,7 @@ interface Props {
   selectedUnivs: string[];
   jonghapPicks: JonghapPick[];
   jonghapMap: JonghapMap;
+  deptMap: Record<string, DeptRow[]>;
   triageMessage: string;
   onComplete?: () => void;
 }
@@ -31,6 +33,7 @@ export function FinalReport({
   selectedUnivs,
   jonghapPicks,
   jonghapMap,
+  deptMap,
   triageMessage,
   onComplete,
 }: Props) {
@@ -40,6 +43,12 @@ export function FinalReport({
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const completedRef = useRef(false);
   const { user } = useAuth();
+
+  // 교과전형 지원 대학·모집단위를 안정/적정/소신으로 (4단계 밴드와 동일 계산).
+  const gyo = useMemo(
+    () => collectGyoBands(deptMap, selectedUnivs, desiredMajor, est9),
+    [deptMap, selectedUnivs, desiredMajor, est9],
+  );
 
   // 선택된 종합전형 학과의 권장과목(DB에 있으면)을 함께 전달.
   const payload = useMemo<ReportPayload>(() => {
@@ -93,6 +102,7 @@ export function FinalReport({
       await saveReport(user.id, desiredMajor ? `${desiredMajor} 대입 보고서` : '대입 전략 보고서', {
         report,
         meta: { est9, refRange, desiredMajor, track },
+        gyo,
       });
       setSaveState('saved');
     } catch {
@@ -107,6 +117,11 @@ export function FinalReport({
     lines.push(`- 계열: ${track || '미상'}`);
     lines.push(`- 9등급 환산: 약 ${refRange ? `${refRange.min}~${refRange.max}` : est9.toFixed(2)}등급`, '');
     lines.push('## 진단 요약', '', report.summary, '');
+    if (gyo.length > 0) {
+      lines.push('## 교과전형 지원 가능 대학 (안정/적정/소신)', '', '| 구분 | 대학 | 모집단위 |', '| --- | --- | --- |');
+      for (const g of gyo) lines.push(`| ${g.band} | ${g.univName} | ${g.dept} |`);
+      lines.push('');
+    }
     lines.push('## 지원 대학', '');
     for (const u of report.universities) {
       lines.push(`### ${u.name} (${u.type})`);
@@ -172,7 +187,7 @@ export function FinalReport({
 
       {saveState === 'error' && <p className="warn no-print">보고서 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.</p>}
 
-      {report && <ReportContent report={report} />}
+      {report && <ReportContent report={report} gyo={gyo} />}
     </div>
   );
 }

@@ -69,6 +69,51 @@ export function bandOf(est9: number, g50: number | null, g70: number | null): '�
   return '소신';
 }
 
+// ── 교과전형 지원 대학·모집단위를 구분(안정/적정/소신)별로 수집 (최종 보고서용) ──
+export interface GyoBandRow {
+  band: '안정' | '적정' | '소신';
+  univName: string;
+  dept: string;
+  type: string;
+  g50: number | null;
+  g70: number | null;
+}
+const BAND_RANK: Record<string, number> = { 안정: 0, 적정: 1, 소신: 2 };
+
+/** 선택 대학의 교과전형 학과를 최신 연도 기준으로 밴드 판정해 수집·정렬. */
+export function collectGyoBands(
+  map: DeptMap,
+  selectedUnivs: string[],
+  desired: string,
+  est9: number,
+): GyoBandRow[] {
+  const out: GyoBandRow[] = [];
+  for (const univ of selectedUnivs) {
+    const depts = deptsFor(map, univ).filter(
+      (d) => (d.type ?? '').includes('교과') && deptMatches(d.dept, desired),
+    );
+    // type|detail|dept 기준 최신 연도 1건만.
+    const latest = new Map<string, DeptRow>();
+    for (const d of depts) {
+      const k = `${d.type}|${d.detail}|${d.dept}`;
+      const prev = latest.get(k);
+      if (!prev || (d.year ?? 0) >= (prev.year ?? 0)) latest.set(k, d);
+    }
+    for (const d of latest.values()) {
+      const band = bandOf(est9, d.g50, d.g70);
+      if (band === '—') continue;
+      out.push({ band, univName: univ, dept: d.dept, type: d.type, g50: d.g50, g70: d.g70 });
+    }
+  }
+  out.sort(
+    (a, b) =>
+      BAND_RANK[a.band] - BAND_RANK[b.band] ||
+      a.univName.localeCompare(b.univName) ||
+      a.dept.localeCompare(b.dept),
+  );
+  return out;
+}
+
 // ── 학과명 80% 유사 매칭 ──
 function normDept(s: string): string {
   return String(s ?? '')
