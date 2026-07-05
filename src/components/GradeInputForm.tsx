@@ -43,6 +43,7 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
   const [uploadWarnings, setUploadWarnings] = useState<string[]>([]);
   const [uploadInfo, setUploadInfo] = useState<string | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const { user } = useAuth();
 
@@ -110,7 +111,24 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
     <section className="input-form">
       <h2>1단계 성적 입력</h2>
 
-      <div className="upload-area">
+      <div
+        className={`upload-area${dragOver ? ' drag-over' : ''}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!ocrBusy) setDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          if (ocrBusy) return;
+          const files = Array.from(e.dataTransfer.files ?? []);
+          if (files.length > 0) void handleFiles(files);
+        }}
+      >
         <label className="upload-label">
           성적표 업로드 (이미지 캡쳐·csv·txt·xlsx, 여러 개 가능)
           <input
@@ -125,7 +143,9 @@ export function GradeInputForm({ track, onTrackChange, onSubmit }: Props) {
           />
         </label>
         <p className="upload-hint muted">
-          여러 파일을 한 번에 올리면 과목이 모두 합쳐집니다. 캡쳐 이미지도 자동 인식{user ? '' : ' (로그인 필요)'}.
+          {dragOver
+            ? '여기에 파일을 놓으세요.'
+            : `파일을 이 영역으로 끌어다 놓거나 위 버튼으로 선택하세요. 여러 파일을 한 번에 올리면 과목이 모두 합쳐집니다. 캡쳐 이미지도 자동 인식${user ? '' : ' (로그인 필요)'}.`}
         </p>
       </div>
       {ocrBusy && <p className="upload-info">이미지를 인식하는 중입니다… 잠시만 기다려 주세요.</p>}
