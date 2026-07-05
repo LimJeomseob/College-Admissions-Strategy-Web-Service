@@ -43,7 +43,6 @@ export function HomePage() {
           <div className="home-start">
             <p className="home-start-label">희망 학과를 입력하고 진단을 시작합시다</p>
             <DesiredMajorInput value={desiredMajor} onChange={setDesiredMajor} />
-            <LinkButton to="/tool" variant="primary">현재 위치 진단 및 선택과목 결정</LinkButton>
           </div>
         }
       />
