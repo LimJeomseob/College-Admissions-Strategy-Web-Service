@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DISCLAIMER, DAILY_ANALYSIS_LIMIT } from '../config';
 import { countTodayAnalysis, dailyLimitEnabled } from '../data/dailyLimit';
 import { loadDataLayer } from '../data/loadDataLayer';
@@ -51,6 +51,9 @@ export function ToolPage() {
   const [error, setError] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<SubjectInput[]>([]);
   const { desiredMajor, track, setDesiredMajor, setTrack } = useSession();
+  // 프로필 자동 시드가 홈에서 방금 입력한 희망학과를 덮어쓰지 않도록 최신값 참조.
+  const desiredMajorRef = useRef(desiredMajor);
+  desiredMajorRef.current = desiredMajor;
   const [submitted, setSubmitted] = useState(false);
   const [consented, setConsented] = useState<boolean | null>(null);
 
@@ -125,8 +128,11 @@ export function ToolPage() {
           setConsented(false);
           return;
         }
-        if (data.desired_major) setDesiredMajor(data.desired_major);
-        if (data.track === '인문' || data.track === '자연') setTrack(data.track);
+        // 사용자가 이미 입력한 희망학과가 있으면 저장값으로 덮어쓰지 않음(홈 입력 우선).
+        if (!desiredMajorRef.current) {
+          if (data.desired_major) setDesiredMajor(data.desired_major);
+          if (data.track === '인문' || data.track === '자연') setTrack(data.track);
+        }
         setConsented(Boolean(data.consent_at));
       });
     return () => {
