@@ -80,7 +80,7 @@ main, .site-footer { position: relative; z-index: 1; }
   font-weight: 800; font-size: 1.05rem; box-shadow: var(--shadow-sm);
   transition: transform .15s, background .15s, border-color .15s, box-shadow .15s, color .15s;
 }
-.wheel-node-label { font-size: .74rem; font-weight: 700; color: var(--muted); white-space: nowrap; transition: color .15s; }
+.wheel-node-label { font-size: 1.11rem; font-weight: 700; color: var(--muted); white-space: nowrap; transition: color .15s; }
 .wheel-node:hover .wheel-node-num,
 .wheel-node.active .wheel-node-num {
   background: var(--green-500); border-color: var(--green-500); color: #fff; transform: scale(1.08);
@@ -105,7 +105,7 @@ main, .site-footer { position: relative; z-index: 1; }
 @media (max-width: 480px) {
   .wheel-node { width: 56px; }
   .wheel-node-num { width: 40px; height: 40px; font-size: .95rem; }
-  .wheel-node-label { font-size: .68rem; }
+  .wheel-node-label { font-size: 1.02rem; }
 }
 
 /* 모바일 최적화 — 섹션 여백·그리드 간격 축소, 강제 줄바꿈 해제 */
