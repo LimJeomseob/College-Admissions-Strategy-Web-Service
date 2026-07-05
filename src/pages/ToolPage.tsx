@@ -28,18 +28,20 @@ import { StrategyCards } from '../components/StrategyCards';
 import { UniversityDetailModal } from '../components/UniversityDetailModal';
 import { SelectedUnivsModal } from '../components/SelectedUnivsModal';
 import { JonghapRecommend } from '../components/JonghapRecommend';
+import { FinalReport } from '../components/FinalReport';
 import { loadJonghapSubjects, type JonghapMap } from '../data/loadJonghapSubjects';
 import { useSession } from '../state/SessionContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import type { DataLayer, DeptRow, JonghapPick, SubjectInput } from '../types';
 
-type TabId = 'input' | 'convert' | 'strategy' | 'apply' | 'jonghap';
+type TabId = 'input' | 'convert' | 'strategy' | 'apply' | 'jonghap' | 'report';
 const TABS: { id: TabId; label: string }[] = [
   { id: 'input', label: '1단계 성적 입력' },
   { id: 'convert', label: '2단계 성적 체계 환산' },
   { id: 'strategy', label: '3단계 교과 전형 지원 가능 대학' },
   { id: 'apply', label: '4단계 수시 지원 교과·종합 추천 대학' },
   { id: 'jonghap', label: '5단계 학생부종합전형 선택과목 추천' },
+  { id: 'report', label: '최종 보고서' },
 ];
 
 // 전략 도구 — 단계별 탭 구성. ③에서 대학을 선택하면 ④ 표가 만들어진다.
@@ -279,7 +281,31 @@ export function ToolPage() {
 
       {activeTab === 'jonghap' &&
         (result ? (
-          <JonghapRecommend picks={jonghapPicks} map={jonghapMap} loading={jonghapLoading} />
+          <JonghapRecommend
+            picks={jonghapPicks}
+            map={jonghapMap}
+            loading={jonghapLoading}
+            track={track}
+            desiredMajor={desiredMajor}
+          />
+        ) : (
+          <NeedGrades />
+        ))}
+
+      {activeTab === 'report' &&
+        (result ? (
+          <FinalReport
+            est9={result.conv.est9}
+            refRange={result.conv.refRange}
+            averages={result.averages}
+            desiredMajor={desiredMajor}
+            track={track}
+            selectedUnivs={selectedUnivs}
+            jonghapPicks={jonghapPicks}
+            jonghapMap={jonghapMap}
+            triageMessage={result.triageResult.message}
+            onComplete={() => logUsage('step_complete', 'report', undefined, { once: true })}
+          />
         ) : (
           <NeedGrades />
         ))}

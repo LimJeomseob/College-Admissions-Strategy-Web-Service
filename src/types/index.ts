@@ -139,6 +139,21 @@ export interface JonghapPick {
   dept: string;
 }
 
+/** REQ-41: 데이터 부재 학과에 대한 AI 선택과목 추천(타 대학 자료 근거) */
+export interface JonghapAiRec {
+  핵심: string[];
+  권장: string[];
+  선택: string[];
+  reason: string; // 참조 대학·근거 설명
+}
+
+/** REQ-50: 최종 보고서 AI 생성 결과 */
+export interface FinalReportData {
+  summary: string;
+  universities: { name: string; type: '교과' | '종합' | '교과·종합'; note: string; subjects: string[] }[];
+  advice: string[];
+}
+
 /** 전형 분기(triage) 결과 */
 export interface TriageResult {
   /** 교과전형 집중 권장 여부 (추정9등급 >= 임계값) */
