@@ -86,7 +86,8 @@ input, select { padding: 6px 10px; border: 1px solid var(--line); border-radius:
 .grade-table input { width: 70px; }
 .grade-table input[type="text"], .grade-table td:nth-child(2) input { width: 110px; }
 
-.upload-area { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; padding: 12px; background: var(--surface-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); }
+.upload-area { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; padding: 12px; background: var(--surface-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); transition: border-color .15s, background .15s; }
+.upload-area.drag-over { border-color: var(--navy-500, #5b8f73); border-style: solid; background: var(--navy-50, #eaf3ee); }
 .upload-label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
 .upload-info { font-size: .85rem; color: var(--stable); margin: 0 0 8px; }
 .upload-warn { list-style: none; margin: 0 0 12px; padding: 8px 12px; font-size: .8rem; }
