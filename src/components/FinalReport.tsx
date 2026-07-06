@@ -4,7 +4,8 @@ import { aiFinalReport, type ReportPayload } from '../data/aiGuidance';
 import { recommendFor, type JonghapMap } from '../data/loadJonghapSubjects';
 import { gyoBandsForPicks } from '../data/loadDeptAdmissions';
 import { ReportContent } from './ReportContent';
-import { saveReport } from '../data/reports';
+import { saveReport, downloadReportMd, type ReportStudent, type SavedReportPayload } from '../data/reports';
+import { supabase } from '../auth/supabaseClient';
 import { useAuth } from '../auth/AuthProvider';
 
 // REQ-50 최종 보고서 — 선택 대학 + 교과/종합 구분 + 선택과목 + 조언을 AI가 자동 생성.
@@ -97,49 +98,51 @@ export function FinalReport({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload]);
 
+  // 보고서 저장 시점의 학생 정보(마이페이지 '내 정보') 스냅샷 — 보고서와 1:1.
+  const getStudent = async (): Promise<ReportStudent> => {
+    let name = '';
+    let grade = '';
+    let contact = '';
+    if (supabase && user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('name, grade, contact')
+        .eq('id', user.id)
+        .maybeSingle();
+      name = data?.name ?? '';
+      grade = data?.grade ?? '';
+      contact = data?.contact ?? '';
+    }
+    return { name, grade, desiredMajor, contact };
+  };
+
+  const buildPayload = (student: ReportStudent): SavedReportPayload => ({
+    report: report!,
+    meta: { est9, refRange, desiredMajor, track },
+    gyo,
+    student,
+  });
+
   const saveCurrent = async () => {
     if (!report || !user) return;
     setSaveState('saving');
     try {
-      await saveReport(user.id, desiredMajor ? `${desiredMajor} 대입 보고서` : '대입 전략 보고서', {
-        report,
-        meta: { est9, refRange, desiredMajor, track },
-        gyo,
-      });
+      const student = await getStudent();
+      const title = student.name
+        ? `${student.name} 대입 보고서`
+        : desiredMajor
+          ? `${desiredMajor} 대입 보고서`
+          : '대입 전략 보고서';
+      await saveReport(user.id, title, buildPayload(student));
       setSaveState('saved');
     } catch {
       setSaveState('error');
     }
   };
 
-  const downloadMd = () => {
+  const downloadMd = async () => {
     if (!report) return;
-    const lines: string[] = ['# 대입 전략 최종 보고서', ''];
-    if (desiredMajor) lines.push(`- 희망학과: ${desiredMajor}`);
-    lines.push(`- 계열: ${track || '미상'}`);
-    lines.push(`- 9등급 환산: 약 ${refRange ? `${refRange.min}~${refRange.max}` : est9.toFixed(2)}등급`, '');
-    lines.push('## 진단 요약', '', report.summary, '');
-    if (gyo.length > 0) {
-      lines.push('## 교과전형 지원 가능 대학 (안정/적정/소신)', '', '| 구분 | 대학 | 모집단위 |', '| --- | --- | --- |');
-      for (const g of gyo) lines.push(`| ${g.band} | ${g.univName} | ${g.dept} |`);
-      lines.push('');
-    }
-    lines.push('## 지원 대학', '');
-    for (const u of report.universities) {
-      lines.push(`### ${u.name} (${u.type})`);
-      if (u.note) lines.push(u.note);
-      if (u.subjects.length) lines.push(`- 권장 선택과목: ${u.subjects.join(', ')}`);
-      lines.push('');
-    }
-    lines.push('## 조언', '');
-    for (const a of report.advice) lines.push(`- ${a}`);
-    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '대입전략_최종보고서.md';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadReportMd(buildPayload(await getStudent()));
   };
 
   if (selectedUnivs.length === 0) {

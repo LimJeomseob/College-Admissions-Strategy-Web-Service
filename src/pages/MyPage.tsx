@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { supabase } from '../auth/supabaseClient';
 import { Button } from '../components/ui/Button';
 import { ReportContent } from '../components/ReportContent';
-import { listReports, deleteReport, type SavedReport } from '../data/reports';
+import { listReports, deleteReport, downloadReportMd, type SavedReport } from '../data/reports';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import type { Track } from '../types';
 
@@ -214,22 +214,34 @@ export function MyPage() {
 
           <div className="panel">
             <h2>저장된 보고서</h2>
+            <p className="subtitle muted">
+              ‘내 정보’에 학생 정보를 입력·저장한 뒤 6단계에서 보고서를 저장하면 학생별로 보관됩니다.
+            </p>
             {reports.length === 0 ? (
               <p className="muted">6단계 최종 보고서에서 ‘마이페이지에 저장’을 누르면 여기에 보관됩니다.</p>
             ) : (
               <ul className="report-list">
-                {reports.map((r) => (
+                {reports.map((r) => {
+                  const st = r.data?.student;
+                  return (
                   <li key={r.id} className="report-list-item">
                     <div className="report-list-head">
                       <button type="button" className="linklike" onClick={() => setOpenReport(openReport === r.id ? null : r.id)}>
                         {openReport === r.id ? '▾' : '▸'} {r.title || '대입 전략 보고서'}
                       </button>
                       <span className="muted">{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
+                      <button type="button" className="secondary sm" onClick={() => downloadReportMd(r.data)}>⬇ 다운로드</button>
                       <button type="button" className="secondary sm" onClick={() => removeReport(r.id)}>삭제</button>
                     </div>
+                    {st && (st.name || st.grade || st.desiredMajor || st.contact) && (
+                      <p className="report-list-student muted">
+                        👤 {st.name || '—'}{st.grade ? ` · ${st.grade}` : ''}{st.desiredMajor ? ` · ${st.desiredMajor}` : ''}{st.contact ? ` · ${st.contact}` : ''}
+                      </p>
+                    )}
                     {openReport === r.id && r.data?.report && <ReportContent report={r.data.report} gyo={r.data.gyo} />}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </div>
