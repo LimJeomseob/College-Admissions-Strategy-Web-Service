@@ -14,7 +14,8 @@ export function AppRoutes() {
     <Routes>
       <Route element={<PageShell />}>
         <Route index element={<HomePage />} />
-        <Route path="tool" element={<RequireProfile><ToolPage /></RequireProfile>} />
+        {/* 전략 도구는 회원가입(구글) 후 로그인한 사용자만 사용 가능 */}
+        <Route path="tool" element={<RequireAuth><RequireProfile><ToolPage /></RequireProfile></RequireAuth>} />
 
         {/* Phase B — 인증/개인정보/관리자 */}
         <Route path="login" element={<LoginPage />} />
