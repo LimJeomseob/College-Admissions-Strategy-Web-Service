@@ -350,6 +350,7 @@ tr.jonghap-selected, tr.jonghap-selected:hover { background: var(--navy-50, #eaf
 .report-list-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .report-list-head .linklike { font-weight: 600; }
 .report-list-head .muted { margin-left: auto; }
+.report-list-student { margin: 6px 0 0; font-size: .84rem; }
 button.sm { font-size: .78rem; padding: 3px 10px; }
 .account-toggle { font-size: .78rem; font-weight: 700; padding: 3px 12px; border-radius: 999px; border: 1px solid var(--line); cursor: pointer; }
 .usage-clear-btn { margin-left: auto; font-size: .78rem; padding: 3px 10px; border: 1px solid #d99; border-radius: 6px; background: #f7e9e9; color: #a33; cursor: pointer; }
