@@ -19,18 +19,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 서비스 오프라인 전환: 앱 번들(Supabase 접속 설정 포함)을 배포하지 않고
+      # 정적 안내 페이지(offline/)만 게시한다. 재개 시 이전 빌드 단계(npm ci → etl:2028 → build, path: dist)로 되돌린다.
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      # 2028 입결 라인표(scripts/etl/data/*.csv)로 실데이터 dataLayer.json 생성.
-      - run: npm run etl:2028
-      - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: offline
 
   deploy:
     needs: build
